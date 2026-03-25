@@ -316,7 +316,7 @@
             <div class="profile-card-header">
                 <div id="modal-avatar" class="profile-big-avatar"><i class="fa-solid fa-user"></i></div>
                 
-                <!-- BADGE DE RATING PROMEDIO (Solo Conductores) -->
+                <!-- BADGE DE RATING PROMEDIO -->
                 <div id="modal-rating-badge" class="driver-rating-badge hidden">
                     <i class="fa-solid fa-star"></i> <span id="modal-rating-value">5.0</span>
                 </div>
@@ -325,7 +325,7 @@
                 <p id="modal-role-text" style="color:var(--primary); font-weight:bold; margin-top:5px;">ROL</p>
             </div>
             
-            <!-- Pestañas (Solo si es conductor) -->
+            <!-- Pestañas -->
             <div id="modal-tabs" class="modal-tabs hidden">
                 <button class="tab-btn active" onclick="switchTab('profile')">Ficha & Pago</button>
                 <button class="tab-btn" onclick="switchTab('history')">Historial</button>
@@ -333,7 +333,7 @@
 
             <!-- CONTENIDO PESTAÑA FICHA -->
             <div id="tab-profile" class="tab-content active">
-                <div id="modal-bio" style="color:#888; font-style:italic; font-size:0.9rem; padding: 0 20px; text-align: center; margin-bottom: 15px;">Sin biografía disponible.</p>
+                <div id="modal-bio" style="color:#888; font-style:italic; font-size:0.9rem; padding: 0 20px; text-align: center; margin-bottom: 15px;">Sin biografía disponible.</div>
                 
                 <div id="modal-vehicle-info" class="driver-details hidden" style="margin: 0 20px 15px 20px;">
                     <h5 style="color:var(--text-sec); margin-bottom:10px; text-transform:uppercase; font-size: 0.7rem;">Datos del Vehículo</h5>
@@ -368,9 +368,8 @@
     <!-- NUEVO: MODAL DE RATING OPCIONAL -->
     <div class="modal-overlay" id="rating-modal">
         <div class="modal-card">
-            <div style="padding:20px; text-align:center;">
-                <h2 style="color:var(--primary);">Califica tu viaje</h2>
-                <p style="color:#aaa; margin-bottom:20px;">¿Cómo estuvo el servicio?</p>
+            <div class="rating-modal-content">
+                <h2 style="color:var(--primary); margin-bottom:5px;">¿Cómo estuvo el viaje?</h2>
                 
                 <div class="rating-stars-display" id="star-container">
                     <span onclick="setTempRating(1)">★</span>
@@ -382,7 +381,7 @@
                 
                 <textarea id="rating-comment" placeholder="Comentario (Opcional)..." style="width:100%; margin-top:15px; padding:10px; background:#333; border:1px solid #444; color:white; border-radius:8px; resize: none;"></textarea>
                 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top:20px;">
                     <button onclick="submitRating()" style="background:var(--primary); border:none; padding:12px; border-radius:8px; color:black; font-weight:bold; cursor:pointer;">Enviar</button>
                     <button onclick="skipRating()" style="background:transparent; border:1px solid #444; color:#aaa; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;">Cerrar sin calificar</button>
                 </div>
@@ -472,7 +471,7 @@
     <script>
         const appState = { user: null, map: null, userMarker: null, markers: {}, currentSelection: null, chatTarget: null, lastNotifId: 0, pendingNotification: null, usersCache: {}, currentRide: null, tempRating: 0 };
         const AVATAR_LIST = [
-            'fa-face-smile', 'fa-face-laugh-beam', 'face-grin-stars', 'fa-user-astronaut', 
+            'fa-face-smile', 'fa-face-laugh-beam', 'fa-face-grin-stars', 'fa-user-astronaut', 
             'fa-user-ninja', 'fa-user-secret', 'fa-user-tie', 'fa-user-nurse', 
             'fa-ghost', 'fa-robot'
         ];
@@ -511,6 +510,7 @@
             else serviceOptions.classList.add('hidden');
         }
 
+        // CORRECCIÓN: AGREGADO ASYNC A CHECKUSER
         async function checkUser() {
             const phone = document.getElementById('login-phone').value;
             if(!phone) return alert("Ingresa teléfono");
@@ -831,10 +831,12 @@
                 document.getElementById('modal-plate').innerText = u.plate || 'No registrada';
                 document.getElementById('modal-model').innerText = u.vehicle_model || 'No especificado';
                 
+                // Cargar Datos de Pago
                 document.getElementById('modal-pay-cedula').innerText = u.pay_cedula || '---';
                 document.getElementById('modal-pay-phone').innerText = u.pay_phone || '---';
                 document.getElementById('modal-pay-bank').innerText = u.pay_bank || '---';
 
+                // Cargar Historial del conductor
                 loadDriverHistory(u.id);
 
             } else {
@@ -898,7 +900,6 @@
                         } else {
                             starsHtml = 'Sin calificación';
                         }
-
                         let statusClass = h.status === 'completed' ? 'st-completed' : 'st-cancelled';
                         
                         item.innerHTML = `
@@ -1078,7 +1079,7 @@
 
         function showArrivalOptions() {
             const actions = document.getElementById('ride-actions-container');
-            actions.innerHTML = `<p style="text-align:center; margin-bottom:10px;">¿Llegaste a tu destino?</p><div class="final-actions"><button class="btn-ride btn-accept" onclick="updateRideStatus('completed')">SÍ</button><button class="btn-ride btn-sec-ride" onclick="showCancelOptions()">NO</button></div>`;
+            actions.innerHTML = `<p style="text-align:center; margin-bottom:10px;">¿Llegaste a tu destino?</p><div class="final-actions"><button class="btn-ride btn-accept" onclick="finalizeRide('completed')">SÍ</button><button class="btn-ride btn-sec-ride" onclick="showCancelOptions()">NO</button></div>`;
         }
         function showCancelOptions() {
             const actions = document.getElementById('ride-actions-container');
@@ -1086,14 +1087,11 @@
         }
 
         async function finalizeRide(status) {
-            // Si es cancelado, guardamos historial normal. Si es completado, el rating se maneja en el modal opcional
-            if(status === 'completed') {
-                // No hacemos nada aqui, esperamos el modal
-            } else {
-                await updateRideStatus(status);
-                await fetch('/api/save-history', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: status, rating: 0 }) });
-                document.getElementById('ride-control-panel').classList.add('hidden');
-            }
+            await updateRideStatus(status);
+            await fetch('/api/save-history', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: status, rating: 0 }) });
+            if(status === 'completed') { 
+                // No hacemos nada aquí, esperamos el modal de rating
+            } else { document.getElementById('ride-control-panel').classList.add('hidden'); }
         }
 
         // --- NUEVO: SISTEMA DE RATING OPCIONAL ---
@@ -1113,7 +1111,6 @@
 
         async function submitRating() {
             const comment = document.getElementById('rating-comment').value;
-            
             // 1. Enviar Rating Individual
             await fetch('/api/submit-rating', { 
                 method:'POST', 
@@ -1126,15 +1123,18 @@
                 }) 
             });
             
-            // 2. Cerrar todo y poner online al conductor
+            // 2. Guardar Historial con el rating elegido
+            await fetch('/api/save-history', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: 'completed', rating: appState.tempRating }) });
+            
+            // 3. Limpiar interfaz y poner online
             document.getElementById('rating-modal').classList.remove('active');
-            document.getElementById('chat-modal').classList.remove('active'); // Cerrar chat también
+            document.getElementById('chat-modal').classList.remove('active');
             document.getElementById('ride-control-panel').classList.add('hidden');
             
             if(appState.user.role === 'service') await setUserStatus('online');
         }
 
-        function skipRating() {
+        function skipRating() { 
             // Si cierra sin calificar, guardamos rating 0
             fetch('/api/save-history', { 
                 method:'POST', 
@@ -1146,13 +1146,12 @@
                     rating: 0 
                 }) 
             });
-            
             document.getElementById('rating-modal').classList.remove('active');
             document.getElementById('ride-control-panel').classList.add('hidden');
             if(appState.user.role === 'service') await setUserStatus('online');
         }
 
-        // --- PERFIL PROPIO ---
+        // PERFIL PROPIO
         async function openMyProfile() {
             if(!appState.user) return;
             initAvatarSelector(); 
