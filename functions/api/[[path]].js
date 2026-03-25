@@ -127,9 +127,7 @@ export async function onRequest(context) {
     if (url.pathname === "/api/update-ride" && request.method === "POST") {
       const data = await request.json();
       await DB.prepare("UPDATE service_requests SET status = ? WHERE id = ?").bind(data.status, data.rideId).run();
-      if (data.rating) {
-        await DB.prepare("UPDATE service_requests SET rating = ?, review_comment = ? WHERE id = ?").bind(data.rating, data.comment, data.rideId).run();
-      }
+      
       if(data.status === 'cancelled') {
          const ride = await DB.prepare("SELECT * FROM service_requests WHERE id = ?").bind(data.rideId).first();
          if(ride) {
@@ -139,10 +137,12 @@ export async function onRequest(context) {
                 .bind(ride.client_id, driverName, 'cancelled', 0).run();
          }
       }
+      
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (url.pathname === "/api/save-history" && request.method === "POST") {
+      // Guardar historial y guardar rating individual si existe
       const data = await request.json();
       await DB.prepare(`INSERT INTO ride_history (user_id, driver_name, status, rating, created_at) VALUES (?, ?, ?, ?, datetime('now'))`).bind(data.user_id, data.driver_name, data.status, data.rating || 0).run();
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -150,28 +150,34 @@ export async function onRequest(context) {
 
     if (url.pathname === "/api/history" && request.method === "GET") {
       const userId = url.searchParams.get("user_id");
-      // CORRECCIÓN: Manejar si la tabla está vacía o da error
       let history = [];
       try {
         const { results } = await DB.prepare("SELECT * FROM ride_history WHERE user_id = ? ORDER BY created_at DESC").bind(userId).all();
         history = results || [];
-      } catch(e) {
-        console.error("Error fetching history", e);
-        history = [];
-      }
+      } catch(e) { history = []; }
       return new Response(JSON.stringify(history), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // --- REVIEWS ---
-    if (url.pathname === "/api/review" && request.method === "POST") {
-      const data = await request.json();
-      await DB.prepare("INSERT INTO reviews (target_id, author_name, stars, comment, created_at) VALUES (?, ?, ?, ?, datetime('now'))").bind(data.targetId, data.author, data.stars, data.comment).run();
-      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // --- NUEVO: SISTEMA DE RATING INDIVIDUAL ---
+    if (url.pathname === "/api/submit-rating" && request.method === "POST") {
+        const data = await request.json();
+        
+        // 1. Guardar Rating Individual
+        await DB.prepare(`INSERT INTO ratings (driver_id, user_id, stars, comment, created_at) VALUES (?, ?, ?, ?, datetime('now'))`)
+            .bind(data.driver_id, data.user_id, data.stars, data.comment).run();
+        
+        // 2. Guardar Historial
+        await DB.prepare(`INSERT INTO ride_history (user_id, driver_name, status, rating, created_at) VALUES (?, ?, ?, ?, datetime('now'))`)
+            .bind(data.user_id, data.driver_name, 'completed', data.stars).run();
+
+        return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    if (url.pathname.startsWith("/api/reviews/") && request.method === "GET") {
-      const targetId = url.pathname.split("/").pop();
-      const { results } = await DB.prepare("SELECT * FROM reviews WHERE target_id = ? ORDER BY created_at DESC").bind(targetId).all();
-      return new Response(JSON.stringify(results || []), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    if (url.pathname === "/api/get-driver-rating" && request.method === "GET") {
+        const driverId = url.searchParams.get("driver_id");
+        // Calcular promedio
+        const result = await DB.prepare(`SELECT AVG(stars) as avg, COUNT(*) as count FROM ratings WHERE driver_id = ?`).bind(driverId).first();
+        return new Response(JSON.stringify({ avg: result.avg || 0, count: result.count || 0 }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // --- CHECK NOTIFICATIONS ---

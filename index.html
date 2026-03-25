@@ -16,7 +16,7 @@
         body { background: var(--bg-dark); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         .hidden { display: none !important; }
 
-        /* AUTH MEJORADO */
+        /* AUTH */
         #auth-screen { 
             position: fixed; inset: 0; 
             background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%); 
@@ -110,8 +110,17 @@
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
         /* FICHA PERFIL */
-        .profile-card-header { padding: 25px; text-align: center; background: #252525; border-bottom: 1px solid #333; flex-shrink: 0; }
+        .profile-card-header { padding: 25px; text-align: center; background: #252525; border-bottom: 1px solid #333; flex-shrink: 0; position: relative; }
         .profile-big-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; background: #333; margin: 0 auto 15px; border: 3px solid var(--primary); display: flex; justify-content: center; align-items: center; font-size: 2.5rem; overflow: hidden; }
+        .driver-rating-badge { 
+            position: absolute; top: 20px; right: 20px; 
+            background: var(--service); color: black; 
+            padding: 4px 10px; border-radius: 20px; 
+            font-weight: bold; font-size: 0.8rem; 
+            display: flex; align-items: center; gap: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
         .driver-details { background: #1a1a1a; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.85rem; color: #ccc; border: 1px solid #333; }
         .detail-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
         .detail-val { color: white; font-weight: bold; }
@@ -138,10 +147,11 @@
         .btn-finish { background: var(--service); color: black; }
         .btn-sec-ride { background: #555; color: white; }
 
-        .final-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .rating-ui { text-align: center; margin-top: 10px; }
-        .stars { font-size: 2rem; color: #555; cursor: pointer; }
-        .stars span.active { color: gold; }
+        /* MODAL RATING OPCIONAL */
+        .rating-modal-content { padding: 20px; text-align: center; }
+        .rating-stars-display { font-size: 2rem; color: #555; cursor: pointer; margin: 20px 0; }
+        .rating-stars-display span.active { color: gold; }
+        .rating-close-btn { margin-top: 15px; background: transparent; border: 1px solid #444; color: #aaa; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
 
         /* NUEVO: TABS EN EL MODAL DE PERFIL */
         .modal-tabs { display: flex; background: #252525; border-bottom: 1px solid #333; }
@@ -150,7 +160,7 @@
         .tab-content { padding: 20px; display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
 
-        /* ESTILOS ESPECIFICOS PARA EL HISTORIAL DEL CONDUCTOR */
+        /* ESTILOS HISTORIAL */
         .history-list { max-height: 300px; overflow-y: auto; }
         .history-item { padding: 12px; border-bottom: 1px solid #333; font-size: 0.9rem; display: flex; flex-direction: column; gap: 5px; }
         .history-header { display: flex; justify-content: space-between; align-items: center; }
@@ -163,7 +173,6 @@
         .payment-box { background: rgba(255, 204, 0, 0.1); border: 1px solid var(--service); padding: 15px; border-radius: 12px; margin-top: 15px; }
         .payment-box h5 { color: var(--service); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
         .payment-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
-        .payment-copy-btn { background: var(--service); border: none; color: black; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
 
         /* NOTIFICACIONES */
         #snackbar-container {
@@ -251,8 +260,8 @@
                 <div class="input-group"><input type="tel" id="reg-phone" readonly></div>
                 
                 <div id="service-extra-fields" class="hidden">
-                    <div class="input-group"><input type="text" id="reg-model" placeholder="Modelo de Moto (ej: Honda CBZ)"></div>
-                    <div class="input-group"><input type="text" id="reg-plate" placeholder="Placa (ej: ABC-123)"></div>
+                    <div class="input-group"><input type="text" id="reg-model" placeholder="Modelo de Moto (ej: Honda CBZ)"></div></div>
+                    <div class="input-group"><input type="text" id="reg-plate" placeholder="Placa (ej: ABC-123)"></div></div>
                 </div>
 
                 <div class="input-group hidden" id="service-options">
@@ -301,12 +310,17 @@
 
     <div id="map"></div>
 
-    <!-- MODAL PERFIL OTRO USUARIO (CON TABS) -->
+    <!-- MODAL PERFIL OTRO USUARIO (CON TABS Y RATING) -->
     <div class="modal-overlay" id="detail-modal">
         <div class="modal-card">
-            <!-- Header Común -->
             <div class="profile-card-header">
                 <div id="modal-avatar" class="profile-big-avatar"><i class="fa-solid fa-user"></i></div>
+                
+                <!-- BADGE DE RATING PROMEDIO (Solo Conductores) -->
+                <div id="modal-rating-badge" class="driver-rating-badge hidden">
+                    <i class="fa-solid fa-star"></i> <span id="modal-rating-value">5.0</span>
+                </div>
+
                 <h2 id="modal-name">Nombre</h2>
                 <p id="modal-role-text" style="color:var(--primary); font-weight:bold; margin-top:5px;">ROL</p>
             </div>
@@ -314,21 +328,19 @@
             <!-- Pestañas (Solo si es conductor) -->
             <div id="modal-tabs" class="modal-tabs hidden">
                 <button class="tab-btn active" onclick="switchTab('profile')">Ficha & Pago</button>
-                <button class="tab-btn" onclick="switchTab('history')">Historial de Viajes</button>
+                <button class="tab-btn" onclick="switchTab('history')">Historial</button>
             </div>
 
             <!-- CONTENIDO PESTAÑA FICHA -->
             <div id="tab-profile" class="tab-content active">
                 <div id="modal-bio" style="color:#888; font-style:italic; font-size:0.9rem; padding: 0 20px; text-align: center; margin-bottom: 15px;">Sin biografía disponible.</p>
                 
-                <!-- Datos del Vehículo -->
-                <div id="modal-vehicle-info" class="driver-details" style="margin: 0 20px 15px 20px;">
+                <div id="modal-vehicle-info" class="driver-details hidden" style="margin: 0 20px 15px 20px;">
                     <h5 style="color:var(--text-sec); margin-bottom:10px; text-transform:uppercase; font-size: 0.7rem;">Datos del Vehículo</h5>
                     <div class="detail-row"><span>Placa:</span> <span id="modal-plate" class="detail-val">---</span></div>
                     <div class="detail-row"><span>Modelo:</span> <span id="modal-model" class="detail-val">---</span></div>
                 </div>
 
-                <!-- Pago Móvil -->
                 <div id="modal-payment-info" class="payment-box hidden" style="margin: 0 20px 15px 20px;">
                     <h5><i class="fa-solid fa-wallet"></i> Pago Móvil</h5>
                     <div class="payment-row"><span>Cédula:</span> <span id="modal-pay-cedula" style="font-weight:bold;">---</span></div>
@@ -349,6 +361,31 @@
             
             <div style="padding: 15px;">
                 <button onclick="closeModal('detail-modal')" style="width:100%; padding:10px; background:transparent; border:1px solid #444; color:#aaa; border-radius:8px;">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NUEVO: MODAL DE RATING OPCIONAL -->
+    <div class="modal-overlay" id="rating-modal">
+        <div class="modal-card">
+            <div style="padding:20px; text-align:center;">
+                <h2 style="color:var(--primary);">Califica tu viaje</h2>
+                <p style="color:#aaa; margin-bottom:20px;">¿Cómo estuvo el servicio?</p>
+                
+                <div class="rating-stars-display" id="star-container">
+                    <span onclick="setTempRating(1)">★</span>
+                    <span onclick="setTempRating(2)">★</span>
+                    <span onclick="setTempRating(3)">★</span>
+                    <span onclick="setTempRating(4)">★</span>
+                    <span onclick="setTempRating(5)">★</span>
+                </div>
+                
+                <textarea id="rating-comment" placeholder="Comentario (Opcional)..." style="width:100%; margin-top:15px; padding:10px; background:#333; border:1px solid #444; color:white; border-radius:8px; resize: none;"></textarea>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
+                    <button onclick="submitRating()" style="background:var(--primary); border:none; padding:12px; border-radius:8px; color:black; font-weight:bold; cursor:pointer;">Enviar</button>
+                    <button onclick="skipRating()" style="background:transparent; border:1px solid #444; color:#aaa; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;">Cerrar sin calificar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -433,9 +470,9 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const appState = { user: null, map: null, userMarker: null, markers: {}, currentSelection: null, chatTarget: null, lastNotifId: 0, pendingNotification: null, usersCache: {} };
+        const appState = { user: null, map: null, userMarker: null, markers: {}, currentSelection: null, chatTarget: null, lastNotifId: 0, pendingNotification: null, usersCache: {}, currentRide: null, tempRating: 0 };
         const AVATAR_LIST = [
-            'fa-face-smile', 'fa-face-laugh-beam', 'fa-face-grin-stars', 'fa-user-astronaut', 
+            'fa-face-smile', 'fa-face-laugh-beam', 'face-grin-stars', 'fa-user-astronaut', 
             'fa-user-ninja', 'fa-user-secret', 'fa-user-tie', 'fa-user-nurse', 
             'fa-ghost', 'fa-robot'
         ];
@@ -770,6 +807,15 @@
                 avatarContainer.innerHTML = `<i class="fa-solid ${u.avatar_icon || 'fa-user'}"></i>`;
             }
 
+            // Mostrar Rating Promedio si es conductor
+            const badge = document.getElementById('modal-rating-badge');
+            if(u.role === 'service') {
+                badge.classList.remove('hidden');
+                fetchDriverRating(u.id);
+            } else {
+                badge.classList.add('hidden');
+            }
+
             // Mostrar/Ocultar Tabs y datos según rol
             const tabsDiv = document.getElementById('modal-tabs');
             const vehicleInfo = document.getElementById('modal-vehicle-info');
@@ -780,17 +826,15 @@
                 tabsDiv.classList.remove('hidden');
                 vehicleInfo.classList.remove('hidden');
                 paymentInfo.classList.remove('hidden');
-                bioInfo.style.display = 'none'; // Ocultar bio simple para dar espacio a tabs
+                bioInfo.style.display = 'none'; 
                 
                 document.getElementById('modal-plate').innerText = u.plate || 'No registrada';
                 document.getElementById('modal-model').innerText = u.vehicle_model || 'No especificado';
                 
-                // Cargar Datos de Pago
                 document.getElementById('modal-pay-cedula').innerText = u.pay_cedula || '---';
                 document.getElementById('modal-pay-phone').innerText = u.pay_phone || '---';
                 document.getElementById('modal-pay-bank').innerText = u.pay_bank || '---';
 
-                // Cargar Historial del conductor
                 loadDriverHistory(u.id);
 
             } else {
@@ -805,11 +849,26 @@
             document.getElementById('detail-modal').classList.add('active');
         }
 
+        async function fetchDriverRating(driverId) {
+            const valueSpan = document.getElementById('modal-rating-value');
+            valueSpan.innerText = '...';
+            try {
+                const res = await fetch(`/api/get-driver-rating?driver_id=${driverId}`);
+                const data = await res.json();
+                if(data && data.avg) {
+                    valueSpan.innerText = parseFloat(data.avg).toFixed(1);
+                } else {
+                    valueSpan.innerText = "Nuevo";
+                }
+            } catch(e) {
+                valueSpan.innerText = "Nuevo";
+            }
+        }
+
         function switchTab(tabName) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
-            // Encontrar el botón clickeado
             const buttons = document.querySelectorAll('.tab-btn');
             if(tabName === 'profile') buttons[0].classList.add('active');
             else buttons[1].classList.add('active');
@@ -821,17 +880,10 @@
             const list = document.getElementById('driver-history-list');
             list.innerHTML = '<div style="padding:10px; text-align:center; color:#666;">Cargando viajes...</div>';
             try {
-                // Usamos el endpoint de historia general, filtrando por el conductor como 'driver_name'
-                // Nota: Esto funciona si guardamos el nombre exacto. En un sistema real usaríamos driver_id en la tabla historial.
-                const histRes = await fetch(`/api/history?user_id=${appState.user.id}`); 
-                // Truco: Filtramos en frontend los viajes donde el nombre coincide, ya que la API general trae los del usuario logueado
-                // Pero para ver el historial DEL OTRO, necesitamos una API nueva o buscar en el historial general.
-                // Por simplicidad en este código actual, solo mostraremos el historial que el USUARIO actual tuvo CON este conductor.
-                
+                const histRes = await fetch(`/api/history?user_id=${appState.user.id}`);
                 const history = await histRes.json();
                 list.innerHTML = '';
                 
-                // Filtramos historial para mostrar solo viajes de ESTE conductor
                 const driverHistory = history.filter(h => h.driver_name === appState.currentSelection.name);
 
                 if (driverHistory.length === 0) {
@@ -886,7 +938,7 @@
 
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-        // --- CARRERA ---
+        // --- CARRERA & RATING ---
         async function startServiceFlow() {
             const driver = appState.currentSelection;
             closeModal('detail-modal');
@@ -982,14 +1034,16 @@
                         }
                         else actions.innerHTML = `<div style="text-align:center; padding:10px; color:var(--primary);">🛵 El taxista va en camino...</div>`;
                     } else if(ride.status === 'active') {
-                        if(appState.user.id === ride.client_id) actions.innerHTML = `<button class="btn-ride btn-finish" onclick="showArrivalOptions()">📍 He llegado a mi destino</button>`;
-                        else actions.innerHTML = `<div style="text-align:center; padding:10px; color:#aaa;">Esperando que el cliente confirme llegada...</div>`;
+                        if(appState.user.id === ride.client_id) {
+                            // USUARIO CONFIRMA LLEGADA -> ABRE RATING MODAL
+                            actions.innerHTML = `<button class="btn-ride btn-finish" onclick="openRatingModal()">📍 He llegado a mi destino</button>`;
+                        } else {
+                            actions.innerHTML = `<div style="text-align:center; padding:10px; color:#aaa;">Esperando que el cliente confirme llegada...</div>`;
+                        }
                     } else if(ride.status === 'completed') {
                         panel.classList.add('hidden'); 
-                        showRatingUI();
                     } else if (ride.status === 'cancelled') {
                         panel.classList.add('hidden');
-                        alert("La carrera fue cancelada.");
                         if(appState.user.role === 'service') await setUserStatus('online');
                     }
                 } catch(e) { console.error(e); }
@@ -1024,7 +1078,7 @@
 
         function showArrivalOptions() {
             const actions = document.getElementById('ride-actions-container');
-            actions.innerHTML = `<p style="text-align:center; margin-bottom:10px;">¿Llegaste a tu destino?</p><div class="final-actions"><button class="btn-ride btn-accept" onclick="finalizeRide('completed')">SÍ</button><button class="btn-ride btn-sec-ride" onclick="showCancelOptions()">NO</button></div>`;
+            actions.innerHTML = `<p style="text-align:center; margin-bottom:10px;">¿Llegaste a tu destino?</p><div class="final-actions"><button class="btn-ride btn-accept" onclick="updateRideStatus('completed')">SÍ</button><button class="btn-ride btn-sec-ride" onclick="showCancelOptions()">NO</button></div>`;
         }
         function showCancelOptions() {
             const actions = document.getElementById('ride-actions-container');
@@ -1032,53 +1086,73 @@
         }
 
         async function finalizeRide(status) {
-            await updateRideStatus(status);
-            await fetch('/api/save-history', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: status, rating: 0 }) });
-            if(status === 'completed') { 
-                if(appState.user.role === 'service') await setUserStatus('online');
-            } else { document.getElementById('ride-control-panel').classList.add('hidden'); }
+            // Si es cancelado, guardamos historial normal. Si es completado, el rating se maneja en el modal opcional
+            if(status === 'completed') {
+                // No hacemos nada aqui, esperamos el modal
+            } else {
+                await updateRideStatus(status);
+                await fetch('/api/save-history', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: status, rating: 0 }) });
+                document.getElementById('ride-control-panel').classList.add('hidden');
+            }
         }
 
-        // --- SISTEMA DE RESEÑAS ---
-        function showRatingUI() {
-            const panel = document.getElementById('ride-control-panel');
-            panel.classList.remove('hidden');
-            document.getElementById('ride-status-text').innerText = "CALIFICA TU SERVICIO";
-            const actions = document.getElementById('ride-actions-container');
-            actions.innerHTML = `
-                <div class="rating-ui">
-                    <p style="color:#aaa; margin-bottom:10px; font-size:0.9rem;">(Opcional)</p>
-                    <div class="stars" id="star-container">
-                        <span onclick="setRating(1)">★</span><span onclick="setRating(2)">★</span><span onclick="setRating(3)">★</span><span onclick="setRating(4)">★</span><span onclick="setRating(5)">★</span>
-                    </div>
-                    <textarea id="rating-comment" placeholder="Comentario..." style="width:100%; margin-top:10px; padding:8px; background:#333; border:1px solid #444; color:white; border-radius:5px;"></textarea>
-                    
-                    <div style="margin-top:15px;">
-                        <button class="btn-ride btn-accept" onclick="submitRating()">Enviar Calificación</button>
-                        <button class="btn-ride btn-sec-ride" onclick="skipRating()" style="margin-top:5px; font-weight:normal;">Omitir</button>
-                    </div>
-                </div>
-            `;
+        // --- NUEVO: SISTEMA DE RATING OPCIONAL ---
+        function openRatingModal() {
+            // Resetear estrellas temporales
+            appState.tempRating = 0;
+            document.querySelectorAll('#star-container span').forEach(s => s.classList.remove('active'));
+            document.getElementById('rating-comment').value = "";
+            document.getElementById('rating-modal').classList.add('active');
         }
 
-        let currentRating = 0;
-        function setRating(n) {
-            currentRating = n;
+        function setTempRating(n) {
+            appState.tempRating = n;
             const spans = document.querySelectorAll('#star-container span');
             spans.forEach((s, i) => s.classList.toggle('active', i < n));
         }
 
         async function submitRating() {
             const comment = document.getElementById('rating-comment').value;
-            await fetch('/api/update-ride', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ rideId: appState.currentRide.id, status: 'completed', rating: currentRating, comment: comment }) });
-            await fetch('/api/save-history', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: 'completed', rating: currentRating }) });
+            
+            // 1. Enviar Rating Individual
+            await fetch('/api/submit-rating', { 
+                method:'POST', 
+                headers:{'Content-Type':'application/json'}, 
+                body: JSON.stringify({ 
+                    driver_id: appState.chatTarget.id, 
+                    user_id: appState.user.id,
+                    stars: appState.tempRating, 
+                    comment: comment 
+                }) 
+            });
+            
+            // 2. Cerrar todo y poner online al conductor
+            document.getElementById('rating-modal').classList.remove('active');
+            document.getElementById('chat-modal').classList.remove('active'); // Cerrar chat también
             document.getElementById('ride-control-panel').classList.add('hidden');
-            alert("¡Gracias!");
+            
+            if(appState.user.role === 'service') await setUserStatus('online');
         }
 
-        function skipRating() { document.getElementById('ride-control-panel').classList.add('hidden'); }
+        function skipRating() {
+            // Si cierra sin calificar, guardamos rating 0
+            fetch('/api/save-history', { 
+                method:'POST', 
+                headers:{'Content-Type':'application/json'}, 
+                body: JSON.stringify({ 
+                    user_id: appState.user.id, 
+                    driver_name: appState.chatTarget.name, 
+                    status: 'completed', 
+                    rating: 0 
+                }) 
+            });
+            
+            document.getElementById('rating-modal').classList.remove('active');
+            document.getElementById('ride-control-panel').classList.add('hidden');
+            if(appState.user.role === 'service') await setUserStatus('online');
+        }
 
-        // PERFIL PROPIO
+        // --- PERFIL PROPIO ---
         async function openMyProfile() {
             if(!appState.user) return;
             initAvatarSelector(); 
@@ -1117,9 +1191,7 @@
                         item.className = 'history-item';
                         let starsHtml = '';
                         if(h.rating > 0) {
-                            for(let i=0; i<5; i++) {
-                                starsHtml += i < h.rating ? '★' : '☆';
-                            }
+                            for(let i=0; i<5; i++) starsHtml += i < h.rating ? '★' : '☆';
                         } else {
                             starsHtml = 'Sin calificación';
                         }
