@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Motogo - Taxi Pro</title>
-    <!-- Manifest comentado para evitar error 404 si no tienes el archivo -->
-    <!-- <link rel="manifest" href="/manifest.json"> -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -73,7 +71,7 @@
 
         .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; margin-bottom: 8px; color: var(--text-sec); font-size: 0.85rem; font-weight: 600; }
-        .input-group input, .input-group select { 
+        .input-group input, .input-group select, .input-group textarea { 
             width: 100%; padding: 16px; 
             background: #1a1a1a; border: 1px solid #333; 
             color: white; border-radius: 12px; outline: none; 
@@ -111,11 +109,11 @@
         /* MODALES */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; display: none; justify-content: center; align-items: flex-end; }
         .modal-overlay.active { display: flex; }
-        .modal-card { background: var(--surface); width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; padding: 0; max-height: 90vh; display: flex; flex-direction: column; border-top: 1px solid var(--primary); animation: slideUp 0.3s; }
+        .modal-card { background: var(--surface); width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; padding: 0; max-height: 90vh; display: flex; flex-direction: column; border-top: 1px solid var(--primary); animation: slideUp 0.3s; overflow-y: auto; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
         /* FICHA PERFIL MEJORADA */
-        .profile-card-header { padding: 25px; text-align: center; background: #252525; border-bottom: 1px solid #333; }
+        .profile-card-header { padding: 25px; text-align: center; background: #252525; border-bottom: 1px solid #333; flex-shrink: 0; }
         .profile-big-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; background: #333; margin: 0 auto 15px; border: 3px solid var(--primary); display: flex; justify-content: center; align-items: center; font-size: 2.5rem; overflow: hidden; }
         .driver-details { background: #1a1a1a; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.85rem; color: #ccc; border: 1px solid #333; }
         .detail-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
@@ -129,13 +127,13 @@
         .btn-chat { background: var(--surface-light); color: white; border: 1px solid #555; }
 
         /* CHAT & RIDE */
-        .chat-header { padding: 15px; background: var(--surface-light); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .chat-header { padding: 15px; background: var(--surface-light); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .chat-body { flex: 1; overflow-y: auto; padding: 15px; background: #181818; display: flex; flex-direction: column; gap: 10px; }
         .msg { max-width: 75%; padding: 10px 15px; border-radius: 15px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
         .msg-own { align-self: flex-end; background: var(--primary); color: black; border-bottom-right-radius: 2px; }
         .msg-other { align-self: flex-start; background: #333; color: white; border-bottom-left-radius: 2px; }
         
-        .ride-panel { background: #252525; padding: 15px; border-top: 1px solid #444; }
+        .ride-panel { background: #252525; padding: 15px; border-top: 1px solid #444; flex-shrink: 0; }
         .ride-status { text-align: center; font-weight: bold; color: var(--primary); margin-bottom: 10px; text-transform: uppercase; font-size: 0.9rem; }
         .btn-ride { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-accept { background: var(--primary); color: black; }
@@ -155,7 +153,7 @@
         .st-completed { background: rgba(0,255,127,0.2); color: var(--primary); }
         .st-cancelled { background: rgba(255,0,85,0.2); color: var(--danger); }
 
-        /* NOTIFICACIONES SNACKBAR (INFERIORES) */
+        /* NOTIFICACIONES SNACKBAR */
         #snackbar-container {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 400px; z-index: 4500;
@@ -171,19 +169,17 @@
             color: white; display: flex; align-items: center; justify-content: space-between;
             animation: slideInUp 0.3s ease-out; pointer-events: auto;
         }
-        
         .snackbar.type-service { border-left-color: var(--service); }
         .snackbar-content { flex: 1; padding-right: 10px; cursor: pointer; }
         .snackbar-content h4 { font-size: 0.9rem; margin-bottom: 2px; color: white; }
         .snackbar-content p { font-size: 0.8rem; color: #ccc; }
-        
         .btn-snackbar-action {
             background: transparent; border: 1px solid var(--danger); color: var(--danger);
             padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; white-space: nowrap;
         }
         .btn-snackbar-action:hover { background: var(--danger); color: white; }
 
-        /* ICONO FAB PERSISTENTE */
+        /* ICONO FAB */
         #notification-fab {
             position: fixed; bottom: 20px; right: 20px;
             width: 50px; height: 50px; border-radius: 50%;
@@ -195,6 +191,22 @@
         }
         #notification-fab.visible { transform: scale(1); }
         #notification-fab.pulse { animation: pulse-animation 2s infinite; }
+
+        /* NUEVO: SELECCIONADOR DE AVATARES */
+        .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 10px; }
+        .avatar-option { 
+            width: 100%; aspect-ratio: 1; 
+            border-radius: 50%; cursor: pointer; 
+            border: 2px solid transparent; 
+            display: flex; justify-content: center; align-items: center; 
+            font-size: 1.5rem; background: #333;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .avatar-option:hover { transform: scale(1.1); }
+        .avatar-option.selected { border-color: var(--primary); transform: scale(1.1); box-shadow: 0 0 10px var(--primary); }
+        
+        .payment-info-box { background: rgba(255, 204, 0, 0.1); border: 1px solid var(--service); padding: 15px; border-radius: 8px; margin-top: 15px; }
+        .payment-info-box h5 { color: var(--service); margin-bottom: 10px; }
 
         @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes pulse-animation { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 127, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(0, 255, 127, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 127, 0); } }
@@ -324,26 +336,57 @@
         </div>
     </div>
 
-    <!-- MODAL PERFIL PROPIO -->
+    <!-- MODAL PERFIL PROPIO (EDITABLE) -->
     <div class="modal-overlay" id="profile-modal">
         <div class="modal-card">
             <div style="padding:15px; border-bottom:1px solid #333; display:flex; justify-content:space-between;">
-                <h3>Mi Perfil</h3>
+                <h3>Editar Perfil</h3>
                 <button onclick="closeModal('profile-modal')" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button>
             </div>
             <div style="padding:15px;">
-                <div style="text-align:center; margin-bottom:20px;">
-                    <img id="edit-avatar-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background:#333; margin-bottom:10px;">
-                    <input type="text" id="edit-avatar-input" placeholder="URL Foto..." style="width:100%; padding:8px; background:#333; border:1px solid #444; color:white; border-radius:5px;">
+                <!-- Selector de Avatares -->
+                <h4 style="margin-bottom:10px; color:var(--primary);">Elige tu Avatar</h4>
+                <div class="avatar-grid" id="avatar-selector">
+                    <!-- Generado por JS -->
                 </div>
-                <h4 style="margin:10px 0; color:var(--primary);">Historial</h4>
+
+                <div class="input-group" style="margin-top:20px;">
+                    <label>Biografía</label>
+                    <textarea id="edit-bio" rows="2" placeholder="Cuéntanos sobre ti..." style="width:100%; padding:8px; background:#333; border:1px solid #444; color:white;"></textarea>
+                </div>
+
+                <!-- Campos de Pago (Solo Conductores) -->
+                <div id="driver-payment-fields" class="payment-info-box hidden">
+                    <h5><i class="fa-solid fa-wallet"></i> Datos de Pago (Pago Móvil)</h5>
+                    <div class="input-group">
+                        <label>Cédula</label>
+                        <input type="text" id="pay-cedula" placeholder="V-00000000">
+                    </div>
+                    <div class="input-group">
+                        <label>Teléfono</label>
+                        <input type="text" id="pay-phone" placeholder="0414-000-0000">
+                    </div>
+                    <div class="input-group">
+                        <label>Banco</label>
+                        <select id="pay-bank" style="width:100%; padding:12px; background:#1a1a1a; border:1px solid #444; color:white; border-radius:8px;">
+                            <option value="">Selecciona Banco</option>
+                            <option value="0105">Banco de Venezuela</option>
+                            <option value="0102">Banesco</option>
+                            <option value="0108">BBVA Provincial</option>
+                            <option value="0134">Banesco</option> <!-- Ejemplo, ajustar códigos reales -->
+                            <option value="0104">Venezuela</option>
+                            <option value="0172">Banfanb</option>
+                            <option value="0191">BNC</option>
+                            <!-- Agrega más bancos aquí -->
+                        </select>
+                    </div>
+                </div>
+
+                <h4 style="margin:20px 0 10px 0; color:var(--primary);">Historial de Viajes</h4>
                 <div id="history-list" class="history-list" style="border:1px solid #333; border-radius:8px;">
                     <div style="padding:10px; text-align:center; color:#666;">Cargando...</div>
                 </div>
-                <div class="input-group" style="margin-top:20px;">
-                    <label>Biografía</label>
-                    <textarea id="edit-bio" rows="2" placeholder="Bio..." style="width:100%; padding:8px; background:#333; border:1px solid #444; color:white;"></textarea>
-                </div>
+                
                 <button class="btn-main btn-enter" onclick="saveMyProfile()">Guardar Cambios</button>
             </div>
         </div>
@@ -352,9 +395,35 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const appState = { user: null, map: null, userMarker: null, markers: {}, currentSelection: null, chatTarget: null, lastNotifId: 0, pendingNotification: null, usersCache: {} };
-        
+        const AVATAR_LIST = [
+            'fa-face-smile', 'fa-face-laugh-beam', 'fa-face-grin-stars', 'fa-user-astronaut', 
+            'fa-user-ninja', 'fa-user-secret', 'fa-user-tie', 'fa-user-nurse', 
+            'fa-ghost', 'fa-robot'
+        ];
+
         // --- AUTH ---
         let selectedRole = 'user';
+        let selectedAvatar = 'fa-user'; // Avatar por defecto
+
+        function initAvatarSelector() {
+            const container = document.getElementById('avatar-selector');
+            container.innerHTML = '';
+            AVATAR_LIST.forEach((icon, index) => {
+                const div = document.createElement('div');
+                div.className = `avatar-option ${icon === selectedAvatar ? 'selected' : ''}`;
+                div.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+                div.onclick = () => {
+                    selectedAvatar = icon;
+                    document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+                    div.classList.add('selected');
+                    // Actualizar vista previa
+                    document.getElementById('edit-avatar-preview').src = '';
+                    document.getElementById('edit-avatar-preview').innerHTML = `<i class="fa-solid ${icon}" style="font-size:3rem;"></i>`;
+                };
+                container.appendChild(div);
+            });
+        }
+
         function selectRole(role) {
             selectedRole = role;
             document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
@@ -402,6 +471,7 @@
                 status: details || 'offline',
                 vehicle_model: vehicleModel,
                 plate: plate,
+                avatar_icon: selectedAvatar, // Guardar el icono seleccionado
                 lat: 0, 
                 lng: 0 
             };
@@ -419,13 +489,20 @@
             
             const headerAvatar = document.getElementById('header-avatar');
             const headerIcon = document.getElementById('header-fallback-icon');
+            
+            // Renderizar avatar (URL o Icono)
             if(user.avatar_url) {
                 headerAvatar.src = user.avatar_url;
                 headerAvatar.style.display = 'block';
                 headerIcon.style.display = 'none';
+            } else if (user.avatar_icon) {
+                headerAvatar.style.display = 'none';
+                headerIcon.style.display = 'block';
+                headerIcon.className = `fa-solid ${user.avatar_icon}`;
             } else {
                 headerAvatar.style.display = 'none';
                 headerIcon.style.display = 'block';
+                headerIcon.className = 'fa-solid fa-user';
             }
 
             document.getElementById('display-name').innerText = user.name;
@@ -450,7 +527,7 @@
                     await fetch('/api/user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(user) });
                     
                     if(appState.userMarker) appState.map.removeLayer(appState.userMarker);
-                    let iconHtml = user.role === 'service' ? '<i class="fa-solid fa-motorcycle"></i>' : '<i class="fa-solid fa-user"></i>';
+                    let iconHtml = user.role === 'service' ? '<i class="fa-solid fa-motorcycle"></i>' : `<i class="fa-solid ${user.avatar_icon || 'fa-user'}"></i>`;
                     let iconClass = user.role === 'service' ? 'custom-pin-service' : 'custom-pin-user';
                     const icon = L.divIcon({ className: '', html: `<div class="${iconClass}" style="width:35px; height:35px;">${iconHtml}</div>`, iconSize: [35,35], iconAnchor: [17.5, 17.5] });
                     appState.userMarker = L.marker([latitude, longitude], {icon: icon}).addTo(appState.map);
@@ -501,16 +578,24 @@
                     appState.usersCache[u.id] = u;
                     
                     let statusColor = u.status === 'online' ? 'var(--primary)' : '#666';
-                    let iconHtml = u.avatar_url ? `<img src="${u.avatar_url}" style="width:100%; height:100%; border-radius:50%;">` : `<i class="fa-solid fa-user"></i>`;
+                    let iconHtml = u.avatar_url ? `<img src="${u.avatar_url}" style="width:100%; height:100%; border-radius:50%;">` : `<i class="fa-solid ${u.avatar_icon || 'fa-user'}"></i>`;
+                    
+                    // OJO: Si es conductor y status es 'occupied' (ocupado), cambiar indicador visual
+                    let statusText = u.role === 'service' ? '🛵 MOTOTAXI' : 'USUARIO';
+                    if(u.role === 'service' && u.status === 'occupied') {
+                        statusColor = 'var(--danger)'; // Rojo si está ocupado
+                        statusText = '🛵 OCUPADO';
+                    }
+
                     listHtml += `
                         <div class="user-item" onclick="openModal('${u.id}')">
                             <div class="mini-avatar" style="border: 2px solid ${statusColor}">${iconHtml}<div class="status-dot" style="background:${statusColor}"></div></div>
-                            <div><b style="font-size:0.9rem;">${u.name}</b><br><small style="color:${statusColor}; font-weight:bold;">${u.role === 'service' ? '🛵 MOTOTAXI' : 'USUARIO'}</small></div>
+                            <div><b style="font-size:0.9rem;">${u.name}</b><br><small style="color:${statusColor}; font-weight:bold;">${statusText}</small></div>
                         </div>
                     `;
 
                     if(!appState.markers[u.id]) {
-                        let pinHtml = u.role === 'service' ? '<i class="fa-solid fa-motorcycle"></i>' : '<i class="fa-solid fa-user"></i>';
+                        let pinHtml = u.role === 'service' ? '<i class="fa-solid fa-motorcycle"></i>' : `<i class="fa-solid ${u.avatar_icon || 'fa-user'}"></i>`;
                         let pinClass = u.role === 'service' ? 'custom-pin-service' : 'custom-pin-user';
                         const icon = L.divIcon({ className: '', html: `<div class="${pinClass}" style="width:35px; height:35px;">${pinHtml}</div>`, iconSize: [35,35], iconAnchor: [17.5, 17.5] });
                         const marker = L.marker([u.lat, u.lng], {icon: icon}).addTo(appState.map);
@@ -645,7 +730,13 @@
             document.getElementById('modal-role-text').innerText = u.role === 'service' ? 'CONDUCTOR' : 'USUARIO';
             document.getElementById('modal-bio').innerText = u.bio || "Sin biografía disponible.";
             const avatarContainer = document.getElementById('modal-avatar');
-            avatarContainer.innerHTML = u.avatar_url ? `<img src="${u.avatar_url}" style="width:100%; height:100%; border-radius:50%;">` : '<i class="fa-solid fa-user"></i>';
+            
+            // Mostrar avatar (Icono o Imagen)
+            if(u.avatar_url) {
+                avatarContainer.innerHTML = `<img src="${u.avatar_url}" style="width:100%; height:100%; border-radius:50%;">`;
+            } else {
+                avatarContainer.innerHTML = `<i class="fa-solid ${u.avatar_icon || 'fa-user'}"></i>`;
+            }
             
             const driverInfo = document.getElementById('modal-driver-info');
             if(u.role === 'service') {
@@ -667,7 +758,10 @@
             if (appState.user.id === u.id) {
                 actionsDiv.innerHTML = `<button class="action-btn btn-profile" onclick="openMyProfile()"><i class="fa-solid fa-pen"></i><span>Editar</span></button><button class="action-btn btn-profile" style="border-color:var(--danger); color:var(--danger);" onclick="alert('Salir')"><i class="fa-solid fa-right-from-bracket"></i><span>Salir</span></button>`;
             } else if (appState.user.role === 'user' && u.role === 'service') {
-                if (u.status === 'online') {
+                // VALIDAR SI EL CONDUCTOR ESTA OCUPADO
+                if(u.status === 'occupied') {
+                    actionsDiv.innerHTML = `<div style="grid-column: span 2; text-align:center; color:var(--danger); padding:10px; font-weight:bold;">Conductor Ocupado</div>${btnChat}`;
+                } else if (u.status === 'online') {
                     actionsDiv.innerHTML = `<button class="action-btn btn-request" onclick="startServiceFlow()"><i class="fa-solid fa-flag-checkered"></i><span>Solicitar Servicio</span></button>${btnChat}`;
                 } else {
                     actionsDiv.innerHTML = `<div style="grid-column: span 2; text-align:center; color:#888; padding:10px;">Conductor no disponible</div>${btnChat}`;
@@ -707,7 +801,7 @@
 
         function setupChatUI(name, status) {
             document.getElementById('chat-with-name').innerText = name;
-            document.getElementById('chat-user-status').innerText = status === 'online' ? '🟢 En línea' : '⚫ Desconectado';
+            document.getElementById('chat-user-status').innerText = status === 'online' ? '🟢 En línea' : status === 'occupied' ? '🔴 Ocupado' : '⚫ Desconectado';
         }
 
         async function loadMessages(targetId) {
@@ -758,7 +852,6 @@
                     actions.innerHTML = '';
                     
                     if(ride.status === 'pending') {
-                        // SOLO EL CONDUCTOR VE BOTONES DE ACCION EN PENDING
                         if(appState.user.id === ride.driver_id) {
                             actions.innerHTML = `
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -770,7 +863,11 @@
                             actions.innerHTML = `<div style="text-align:center; padding:10px; color:#aaa;">Esperando que el taxista acepte...</div>`;
                         }
                     } else if(ride.status === 'accepted') {
-                        if(appState.user.id === ride.driver_id) actions.innerHTML = `<button class="btn-ride btn-finish" onclick="updateRideStatus('active', '${ride.id}')">🏁 Llegué (Terminar)</button>`;
+                        if(appState.user.id === ride.driver_id) {
+                            // Cuando acepta, el conductor pasa a 'occupied'
+                            await setUserStatus('occupied');
+                            actions.innerHTML = `<button class="btn-ride btn-finish" onclick="updateRideStatus('active', '${ride.id}')">🏁 Llegué (Terminar)</button>`;
+                        }
                         else actions.innerHTML = `<div style="text-align:center; padding:10px; color:var(--primary);">🛵 El taxista va en camino...</div>`;
                     } else if(ride.status === 'active') {
                         if(appState.user.id === ride.client_id) actions.innerHTML = `<button class="btn-ride btn-finish" onclick="showArrivalOptions()">📍 He llegado a mi destino</button>`;
@@ -781,11 +878,19 @@
                     } else if (ride.status === 'cancelled') {
                         panel.classList.add('hidden');
                         alert("La carrera fue cancelada.");
+                        // Si era el conductor, volver a online
+                        if(appState.user.role === 'service') await setUserStatus('online');
                     }
                 } catch(e) { console.error(e); }
             };
             updateUI(); 
             rideCheckInterval = setInterval(updateUI, 3000);
+        }
+
+        async function setUserStatus(status) {
+            appState.user.status = status;
+            updateStatusIcon(status);
+            fetch('/api/user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(appState.user) });
         }
 
         async function updateRideStatus(newStatus, rideId) {
@@ -794,22 +899,13 @@
             
             await fetch('/api/update-ride', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ rideId: idToUpdate, status: newStatus }) });
             
-            // Si se rechaza, limpiamos la UI inmediatamente
             if(newStatus === 'cancelled') {
                  document.getElementById('ride-control-panel').classList.add('hidden');
-                 // Enviar mensaje automático
                  if(appState.chatTarget) {
-                     await fetch('/api/messages', { 
-                         method:'POST', 
-                         headers:{'Content-Type':'application/json'}, 
-                         body: JSON.stringify({ 
-                             sender_id: appState.user.id, 
-                             receiver_id: appState.chatTarget.id, 
-                             message: "❌ Servicio rechazado." 
-                         }) 
-                     });
+                     await fetch('/api/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sender_id: appState.user.id, receiver_id: appState.chatTarget.id, message: "❌ Servicio rechazado." }) });
                      loadMessages(appState.chatTarget.id);
                  }
+                 if(appState.user.role === 'service') await setUserStatus('online');
             } else {
                 checkRideStatus();
             }
@@ -827,7 +923,10 @@
         async function finalizeRide(status) {
             await updateRideStatus(status);
             await fetch('/api/save-history', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: status, rating: 0 }) });
-            if(status === 'completed') { /* UI espera */ } else { document.getElementById('ride-control-panel').classList.add('hidden'); }
+            if(status === 'completed') { 
+                // Si es conductor y completa, volver a online
+                if(appState.user.role === 'service') await setUserStatus('online');
+            } else { document.getElementById('ride-control-panel').classList.add('hidden'); }
         }
 
         // --- SISTEMA DE RESEÑAS ---
@@ -867,16 +966,34 @@
             alert("¡Gracias!");
         }
 
-        function skipRating() { 
-            document.getElementById('ride-control-panel').classList.add('hidden'); 
-        }
+        function skipRating() { document.getElementById('ride-control-panel').classList.add('hidden'); }
 
-        // PERFIL PROPIO
+        // PERFIL PROPIO (ACTUALIZADO CON AVATARES Y PAGO)
         async function openMyProfile() {
             if(!appState.user) return;
+            initAvatarSelector(); // Cargar avatares
+            
+            // Seleccionar avatar actual si existe
+            if(appState.user.avatar_icon) {
+                selectedAvatar = appState.user.avatar_icon;
+                document.querySelectorAll('.avatar-option').forEach(el => {
+                    if(el.innerHTML.includes(selectedAvatar)) el.classList.add('selected');
+                    else el.classList.remove('selected');
+                });
+            }
+
             document.getElementById('edit-bio').value = appState.user.bio || "";
-            document.getElementById('edit-avatar-input').value = appState.user.avatar_url || "";
-            document.getElementById('edit-avatar-preview').src = appState.user.avatar_url || "";
+            
+            // Mostrar campos de pago si es conductor
+            if(appState.user.role === 'service') {
+                document.getElementById('driver-payment-fields').classList.remove('hidden');
+                document.getElementById('pay-cedula').value = appState.user.pay_cedula || "";
+                document.getElementById('pay-phone').value = appState.user.pay_phone || "";
+                document.getElementById('pay-bank').value = appState.user.pay_bank || "";
+            } else {
+                document.getElementById('driver-payment-fields').classList.add('hidden');
+            }
+
             const list = document.getElementById('history-list');
             list.innerHTML = '<div style="text-align:center; padding:10px;">Cargando...</div>';
             try {
@@ -897,14 +1014,27 @@
 
         async function saveMyProfile() {
             const newBio = document.getElementById('edit-bio').value;
-            const newAvatar = document.getElementById('edit-avatar-input').value;
-            appState.user.bio = newBio; appState.user.avatar_url = newAvatar;
-            if(newAvatar) { 
-                document.getElementById('header-avatar').src = newAvatar; 
-                document.getElementById('header-avatar').style.display = 'block';
-                document.getElementById('header-fallback-icon').style.display = 'none';
+            
+            // Datos básicos
+            appState.user.bio = newBio;
+            appState.user.avatar_icon = selectedAvatar;
+            appState.user.avatar_url = ""; // Limpiar URL si usa icono
+
+            // Datos bancarios si es conductor
+            if(appState.user.role === 'service') {
+                appState.user.pay_cedula = document.getElementById('pay-cedula').value;
+                appState.user.pay_phone = document.getElementById('pay-phone').value;
+                appState.user.pay_bank = document.getElementById('pay-bank').value;
             }
-            await fetch('/api/update-profile', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: appState.user.id, bio: newBio, avatar_url: newAvatar }) });
+
+            // Actualizar header visualmente
+            const headerAvatar = document.getElementById('header-avatar');
+            const headerIcon = document.getElementById('header-fallback-icon');
+            headerAvatar.style.display = 'none';
+            headerIcon.style.display = 'block';
+            headerIcon.className = `fa-solid ${selectedAvatar}`;
+
+            await fetch('/api/update-profile', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(appState.user) });
             closeModal('profile-modal');
         }
 
