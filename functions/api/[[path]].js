@@ -1,5 +1,3 @@
-// functions/api/[[path].js
-
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -33,21 +31,33 @@ export async function onRequest(context) {
     if (url.pathname === "/api/user" && request.method === "POST") {
       const data = await request.json();
       await DB.prepare(`
-        INSERT INTO users (id, name, phone, role, lat, lng, details, bio, avatar_url, status, last_seen, created_at) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+        INSERT INTO users (id, name, phone, role, lat, lng, details, bio, avatar_url, status, last_seen, created_at, vehicle_model, plate) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?, ?)
         ON CONFLICT(id) DO UPDATE SET 
-          name = excluded.name, phone = excluded.phone, role = excluded.role,
-          lat = excluded.lat, lng = excluded.lng, details = excluded.details,
-          bio = excluded.bio, avatar_url = excluded.avatar_url,
-          status = excluded.status, last_seen = datetime('now')
-      `).bind(data.id, data.name, data.phone, data.role, data.lat, data.lng, (data.details||''), (data.bio||''), (data.avatar_url||''), (data.status||'offline')).run();
+          name = excluded.name, 
+          phone = excluded.phone, 
+          role = excluded.role,
+          lat = excluded.lat, 
+          lng = excluded.lng, 
+          details = excluded.details,
+          bio = excluded.bio, 
+          avatar_url = excluded.avatar_url,
+          status = excluded.status, 
+          last_seen = datetime('now'),
+          vehicle_model = excluded.vehicle_model,
+          plate = excluded.plate
+      `).bind(
+        data.id, data.name, data.phone, data.role, data.lat, data.lng, 
+        (data.details||''), (data.bio||''), (data.avatar_url||''), (data.status||'offline'),
+        (data.vehicle_model || null), (data.plate || null)
+      ).run();
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // --- USERS LIST ---
     if (url.pathname === "/api/users" && request.method === "GET") {
       const { results } = await DB.prepare(`SELECT * FROM users WHERE last_seen > datetime('now', '-90 seconds') ORDER BY last_seen DESC`).all();
-      return new Response(JSON.stringify(results), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify(results || []), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // --- UPDATE PROFILE ---
@@ -67,7 +77,7 @@ export async function onRequest(context) {
       const otherUserId = url.pathname.split("/").pop();
       const myId = url.searchParams.get("me");
       const { results } = await DB.prepare(`SELECT * FROM messages WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?) ORDER BY created_at ASC`).bind(myId, otherUserId, otherUserId, myId).all();
-      return new Response(JSON.stringify(results), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify(results || []), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     
     // --- UNREAD COUNT ---
@@ -101,8 +111,24 @@ export async function onRequest(context) {
 
     if (url.pathname === "/api/update-ride" && request.method === "POST") {
       const data = await request.json();
+      
+      // MEJORA: Permitir rechazar directamente
       await DB.prepare("UPDATE service_requests SET status = ? WHERE id = ?").bind(data.status, data.rideId).run();
-      if (data.rating) await DB.prepare("UPDATE service_requests SET rating = ?, review_comment = ? WHERE id = ?").bind(data.rating, data.comment, data.rideId).run();
+      
+      if (data.rating) {
+        await DB.prepare("UPDATE service_requests SET rating = ?, review_comment = ? WHERE id = ?").bind(data.rating, data.comment, data.rideId).run();
+      }
+      
+      // Si se rechaza, guardar en historial
+      if(data.status === 'cancelled') {
+         // Necesitamos info del ride para guardar historial
+         const ride = await DB.prepare("SELECT * FROM service_requests WHERE id = ?").bind(data.rideId).first();
+         if(ride) {
+             await DB.prepare(`INSERT INTO ride_history (user_id, driver_name, status, rating, created_at) VALUES (?, ?, ?, ?, datetime('now'))`)
+                .bind(ride.client_id, ride.driver_id === appState.user.id ? 'Yo' : 'Conductor', 'cancelled', 0).run();
+         }
+      }
+
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -115,7 +141,7 @@ export async function onRequest(context) {
     if (url.pathname === "/api/history" && request.method === "GET") {
       const userId = url.searchParams.get("user_id");
       const { results } = await DB.prepare("SELECT * FROM ride_history WHERE user_id = ? ORDER BY created_at DESC").bind(userId).all();
-      return new Response(JSON.stringify(results), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify(results || []), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // --- REVIEWS ---
@@ -127,49 +153,44 @@ export async function onRequest(context) {
     if (url.pathname.startsWith("/api/reviews/") && request.method === "GET") {
       const targetId = url.pathname.split("/").pop();
       const { results } = await DB.prepare("SELECT * FROM reviews WHERE target_id = ? ORDER BY created_at DESC").bind(targetId).all();
-      return new Response(JSON.stringify(results), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify(results || []), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // --- CHECK NOTIFICATIONS (CORREGIDO Y PROTEGIDO) ---
+    // --- CHECK NOTIFICATIONS ---
     if (url.pathname === "/api/check-notifications" && request.method === "GET") {
       const userId = url.searchParams.get("user_id");
-      
-      // Enviamos respuesta vacía por defecto
       let notifications = [];
 
       try {
-        // 1. Intentar buscar mensajes (Protegido con try/catch interno)
+        // 1. Mensajes
         try {
           const msg = await DB.prepare(`
-            SELECT id, message, sender_id, 'message' as type, created_at
-            FROM messages 
-            WHERE receiver_id = ? AND sender_id != ?
-            ORDER BY created_at DESC LIMIT 1
+            SELECT m.id, m.message, m.sender_id, m.created_at, u.name as sender_name, 'message' as type
+            FROM messages m
+            JOIN users u ON m.sender_id = u.id
+            WHERE m.receiver_id = ? AND m.sender_id != ?
+            ORDER BY m.created_at DESC LIMIT 1
           `).bind(userId, userId).first();
           
           if (msg) notifications.push(msg);
-        } catch (e) {
-          console.error("Error leyendo mensajes:", e);
-        }
+        } catch (e) { console.error(e); }
 
-        // 2. Intentar buscar solicitudes de servicio (Protegido con try/catch interno)
+        // 2. Solicitudes de Servicio
         try {
           const req = await DB.prepare(`
-            SELECT id, client_id as sender_id, 'service_request' as type, created_at
-            FROM service_requests 
-            WHERE driver_id = ? AND status = 'pending'
-            ORDER BY created_at DESC LIMIT 1
+            SELECT sr.id, sr.client_id as sender_id, sr.created_at, u.name as sender_name, 'service_request' as type
+            FROM service_requests sr
+            JOIN users u ON sr.client_id = u.id
+            WHERE sr.driver_id = ? AND sr.status = 'pending'
+            ORDER BY sr.created_at DESC LIMIT 1
           `).bind(userId).first();
           
           if (req) notifications.push(req);
-        } catch (e) {
-          console.error("Error leyendo service_requests:", e);
-        }
+        } catch (e) { console.error(e); }
 
-      } catch (err) {
-        // Error general inesperado, devolvemos vacío para no romper la app
-        console.error("Error general check-notifications:", err);
-      }
+      } catch (err) { console.error(err); }
+
+      notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
       return new Response(JSON.stringify(notifications), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
