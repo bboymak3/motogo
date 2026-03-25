@@ -5,8 +5,8 @@ export async function onRequest(context) {
 
   const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
-    "access-control-allow-methods": "GET, POST, OPTIONS",
-    "access-control-allow-headers": "Content-Type",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
   };
 
   if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -32,7 +32,7 @@ export async function onRequest(context) {
       const data = await request.json();
       await DB.prepare(`
         INSERT INTO users (id, name, phone, role, lat, lng, details, bio, avatar_url, avatar_icon, status, last_seen, created_at, vehicle_model, plate, pay_cedula, pay_phone, pay_bank) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET 
           name = excluded.name, 
           phone = excluded.phone, 
@@ -85,13 +85,13 @@ export async function onRequest(context) {
     // --- MESSAGES ---
     if (url.pathname === "/api/messages" && request.method === "POST") {
       const data = await request.json();
-      await DB.prepare("INSERT INTO messages (sender_id, receiver_id, message, created_at) VALUES (?, ?, ?, ?, datetime('now'))").bind(data.sender_id, data.receiver_id, data.message).run();
+      await DB.prepare("INSERT INTO messages (sender_id, receiver_id, message, created_at) VALUES (?, ?, ?, datetime('now'))").bind(data.sender_id, data.receiver_id, data.message).run();
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     if (url.pathname.startsWith("/api/messages/") && request.method === "GET") {
       const otherUserId = url.pathname.split("/").pop();
       const myId = url.searchParams.get("me");
-      const { results } = await DB.prepare(`SELECT * FROM messages WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?) ORDER BY created_at ASC`).bind(myId, otherUserId, otherUserId, myId, myId).all();
+      const { results } = await DB.prepare(`SELECT * FROM messages WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?) ORDER BY created_at ASC`).bind(myId, otherUserId, otherUserId, myId).all();
       return new Response(JSON.stringify(results || []), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -120,15 +120,24 @@ export async function onRequest(context) {
     if (url.pathname === "/api/get-ride-status" && request.method === "GET") {
       const myId = url.searchParams.get("my_id");
       const otherId = url.searchParams.get("other_id");
-      const ride = await DB.prepare(`SELECT * FROM service_requests WHERE ((client_id = ? AND driver_id = ?) OR (client_id = ? AND driver_id = ?)) AND status IN ('pending', 'accepted', 'active') ORDER BY created_at DESC LIMIT 1`).bind(myId, otherId, otherId, myId, myId).first();
+      const ride = await DB.prepare(`SELECT * FROM service_requests WHERE ((client_id = ? AND driver_id = ?) OR (client_id = ? AND driver_id = ?)) AND status IN ('pending', 'accepted', 'active') ORDER BY created_at DESC LIMIT 1`).bind(myId, otherId, otherId, myId).first();
       return new Response(JSON.stringify(ride || null), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (url.pathname === "/api/update-ride" && request.method === "POST") {
       const data = await request.json();
       await DB.prepare("UPDATE service_requests SET status = ? WHERE id = ?").bind(data.status, data.rideId).run();
-      if(data.rating) {
+      if (data.rating) {
         await DB.prepare("UPDATE service_requests SET rating = ?, review_comment = ? WHERE id = ?").bind(data.rating, data.comment, data.rideId).run();
+      }
+      if(data.status === 'cancelled') {
+         const ride = await DB.prepare("SELECT * FROM service_requests WHERE id = ?").bind(data.rideId).first();
+         if(ride) {
+             const otherUser = await DB.prepare("SELECT name FROM users WHERE id = ?").bind(ride.driver_id).first();
+             const driverName = otherUser ? otherUser.name : 'Desconocido';
+             await DB.prepare(`INSERT INTO ride_history (user_id, driver_name, status, rating, created_at) VALUES (?, ?, ?, ?, datetime('now'))`)
+                .bind(ride.client_id, driverName, 'cancelled', 0).run();
+         }
       }
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -141,29 +150,28 @@ export async function onRequest(context) {
 
     if (url.pathname === "/api/history" && request.method === "GET") {
       const userId = url.searchParams.get("user_id");
+      // CORRECCIÓN: Manejar si la tabla está vacía o da error
       let history = [];
       try {
         const { results } = await DB.prepare("SELECT * FROM ride_history WHERE user_id = ? ORDER BY created_at DESC").bind(userId).all();
         history = results || [];
-      } catch(e) { history = []; }
+      } catch(e) {
+        console.error("Error fetching history", e);
+        history = [];
+      }
       return new Response(JSON.stringify(history), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // --- NUEVO: SISTEMA DE RATING INDIVIDUAL ---
-    if (url.pathname === "/api/submit-rating" && request.method === "POST") {
-        const data = await request.json();
-        await DB.prepare(`INSERT INTO ratings (driver_id, user_id, stars, comment, created_at) VALUES (?, ?, ?, ?, datetime('now'))`)
-            .bind(data.driver_id, data.user_id, data.stars, data.comment).run();
-        
-        await DB.prepare(`INSERT INTO ride_history (user_id, driver_name, status, rating, created_at) VALUES (?, ?, ?, ?, datetime('now'))`)
-            .bind(data.user_id, data.driver_name, 'completed', data.stars).run();
-        return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // --- REVIEWS ---
+    if (url.pathname === "/api/review" && request.method === "POST") {
+      const data = await request.json();
+      await DB.prepare("INSERT INTO reviews (target_id, author_name, stars, comment, created_at) VALUES (?, ?, ?, ?, datetime('now'))").bind(data.targetId, data.author, data.stars, data.comment).run();
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-
-    if (url.pathname === "/api/get-driver-rating" && request.method === "GET") {
-      const driverId = url.searchParams.get("driver_id");
-      const result = await DB.prepare(`SELECT AVG(stars) as avg, COUNT(*) as count FROM ratings WHERE driver_id = ?`).bind(driverId).first();
-      return new Response(JSON.stringify({ avg: result ? result.avg : 0, count: result ? result.count : 0 }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (url.pathname.startsWith("/api/reviews/") && request.method === "GET") {
+      const targetId = url.pathname.split("/").pop();
+      const { results } = await DB.prepare("SELECT * FROM reviews WHERE target_id = ? ORDER BY created_at DESC").bind(targetId).all();
+      return new Response(JSON.stringify(results || []), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // --- CHECK NOTIFICATIONS ---
