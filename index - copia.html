@@ -143,27 +143,14 @@
         .stars { font-size: 2rem; color: #555; cursor: pointer; }
         .stars span.active { color: gold; }
 
-        /* NUEVO: TABS EN EL MODAL DE PERFIL */
-        .modal-tabs { display: flex; background: #252525; border-bottom: 1px solid #333; }
-        .tab-btn { flex: 1; padding: 15px; background: transparent; border: none; color: #888; font-weight: bold; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.3s; }
-        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: rgba(0, 255, 127, 0.05); }
-        .tab-content { padding: 20px; display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
-
-        /* ESTILOS ESPECIFICOS PARA EL HISTORIAL DEL CONDUCTOR */
-        .history-list { max-height: 300px; overflow-y: auto; }
-        .history-item { padding: 12px; border-bottom: 1px solid #333; font-size: 0.9rem; display: flex; flex-direction: column; gap: 5px; }
+        /* HISTORIAL */
+        .history-list { padding: 0 20px 20px 20px; max-height: 250px; overflow-y: auto; }
+        .history-item { padding: 10px; border-bottom: 1px solid #333; font-size: 0.9rem; display: flex; flex-direction: column; gap: 5px; }
         .history-header { display: flex; justify-content: space-between; align-items: center; }
         .history-status { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
         .st-completed { background: rgba(0,255,127,0.2); color: var(--primary); }
         .st-cancelled { background: rgba(255,0,85,0.2); color: var(--danger); }
         .history-stars { color: gold; font-size: 0.8rem; }
-
-        /* ESTILOS PAGO MOVIL */
-        .payment-box { background: rgba(255, 204, 0, 0.1); border: 1px solid var(--service); padding: 15px; border-radius: 12px; margin-top: 15px; }
-        .payment-box h5 { color: var(--service); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        .payment-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
-        .payment-copy-btn { background: var(--service); border: none; color: black; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
 
         /* NOTIFICACIONES */
         #snackbar-container {
@@ -203,7 +190,7 @@
         #notification-fab.visible { transform: scale(1); }
         #notification-fab.pulse { animation: pulse-animation 2s infinite; }
 
-        /* AVATARES Y PAGO (Perfil propio) */
+        /* AVATARES Y PAGO */
         .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 10px; }
         .avatar-option { 
             width: 100%; aspect-ratio: 1; 
@@ -301,53 +288,22 @@
 
     <div id="map"></div>
 
-    <!-- MODAL PERFIL OTRO USUARIO (CON TABS) -->
+    <!-- MODAL PERFIL -->
     <div class="modal-overlay" id="detail-modal">
         <div class="modal-card">
-            <!-- Header Común -->
             <div class="profile-card-header">
                 <div id="modal-avatar" class="profile-big-avatar"><i class="fa-solid fa-user"></i></div>
                 <h2 id="modal-name">Nombre</h2>
                 <p id="modal-role-text" style="color:var(--primary); font-weight:bold; margin-top:5px;">ROL</p>
-            </div>
-            
-            <!-- Pestañas (Solo si es conductor) -->
-            <div id="modal-tabs" class="modal-tabs hidden">
-                <button class="tab-btn active" onclick="switchTab('profile')">Ficha & Pago</button>
-                <button class="tab-btn" onclick="switchTab('history')">Historial de Viajes</button>
-            </div>
-
-            <!-- CONTENIDO PESTAÑA FICHA -->
-            <div id="tab-profile" class="tab-content active">
-                <div id="modal-bio" style="color:#888; font-style:italic; font-size:0.9rem; padding: 0 20px; text-align: center; margin-bottom: 15px;">Sin biografía disponible.</p>
                 
-                <!-- Datos del Vehículo -->
-                <div id="modal-vehicle-info" class="driver-details" style="margin: 0 20px 15px 20px;">
-                    <h5 style="color:var(--text-sec); margin-bottom:10px; text-transform:uppercase; font-size: 0.7rem;">Datos del Vehículo</h5>
+                <div id="modal-driver-info" class="driver-details hidden">
                     <div class="detail-row"><span>Placa:</span> <span id="modal-plate" class="detail-val">---</span></div>
                     <div class="detail-row"><span>Modelo:</span> <span id="modal-model" class="detail-val">---</span></div>
                 </div>
-
-                <!-- Pago Móvil -->
-                <div id="modal-payment-info" class="payment-box hidden" style="margin: 0 20px 15px 20px;">
-                    <h5><i class="fa-solid fa-wallet"></i> Pago Móvil</h5>
-                    <div class="payment-row"><span>Cédula:</span> <span id="modal-pay-cedula" style="font-weight:bold;">---</span></div>
-                    <div class="payment-row"><span>Teléfono:</span> <span id="modal-pay-phone" style="font-weight:bold;">---</span></div>
-                    <div class="payment-row"><span>Banco:</span> <span id="modal-pay-bank" style="font-weight:bold;">---</span></div>
-                </div>
-
-                <div id="modal-actions" class="profile-actions-grid"></div>
+                <p id="modal-bio" style="color:#888; font-style:italic; font-size:0.9rem; margin-top:10px;">Sin biografía disponible.</p>
             </div>
-
-            <!-- CONTENIDO PESTAÑA HISTORIAL -->
-            <div id="tab-history" class="tab-content">
-                <h4 style="text-align:center; color:var(--primary); margin-bottom:10px;">Viajes Realizados</h4>
-                <div id="driver-history-list" class="history-list">
-                    <div style="padding:10px; text-align:center; color:#666;">Cargando historial...</div>
-                </div>
-            </div>
-            
-            <div style="padding: 15px;">
+            <div id="modal-actions" class="profile-actions-grid"></div>
+            <div style="padding:0 20px 20px 20px;">
                 <button onclick="closeModal('detail-modal')" style="width:100%; padding:10px; background:transparent; border:1px solid #444; color:#aaa; border-radius:8px;">Cerrar</button>
             </div>
         </div>
@@ -421,8 +377,8 @@
                     </div>
                 </div>
 
-                <h4 style="margin:20px 0 10px 0; color:var(--primary);">Mi Historial</h4>
-                <div id="my-history-list" class="history-list" style="border:1px solid #333; border-radius:8px;">
+                <h4 style="margin:20px 0 10px 0; color:var(--primary);">Historial de Viajes</h4>
+                <div id="history-list" class="history-list" style="border:1px solid #333; border-radius:8px;">
                     <div style="padding:10px; text-align:center; color:#666;">Cargando...</div>
                 </div>
                 
@@ -739,7 +695,7 @@
             } catch(e) { alert("Error abriendo chat"); }
         }
 
-        // --- MODALES & TABS ---
+        // --- MODALES ---
         function toggleUserList() { document.getElementById('users-drawer').classList.toggle('active'); }
 
         async function openModal(userParam) {
@@ -762,107 +718,26 @@
             
             document.getElementById('modal-name').innerText = u.name;
             document.getElementById('modal-role-text').innerText = u.role === 'service' ? 'CONDUCTOR' : 'USUARIO';
-            
+            document.getElementById('modal-bio').innerText = u.bio || "Sin biografía disponible.";
             const avatarContainer = document.getElementById('modal-avatar');
+            
             if(u.avatar_url) {
                 avatarContainer.innerHTML = `<img src="${u.avatar_url}" style="width:100%; height:100%; border-radius:50%;">`;
             } else {
                 avatarContainer.innerHTML = `<i class="fa-solid ${u.avatar_icon || 'fa-user'}"></i>`;
             }
-
-            // Mostrar/Ocultar Tabs y datos según rol
-            const tabsDiv = document.getElementById('modal-tabs');
-            const vehicleInfo = document.getElementById('modal-vehicle-info');
-            const paymentInfo = document.getElementById('modal-payment-info');
-            const bioInfo = document.getElementById('modal-bio');
             
+            const driverInfo = document.getElementById('modal-driver-info');
             if(u.role === 'service') {
-                tabsDiv.classList.remove('hidden');
-                vehicleInfo.classList.remove('hidden');
-                paymentInfo.classList.remove('hidden');
-                bioInfo.style.display = 'none'; // Ocultar bio simple para dar espacio a tabs
-                
+                driverInfo.classList.remove('hidden');
                 document.getElementById('modal-plate').innerText = u.plate || 'No registrada';
                 document.getElementById('modal-model').innerText = u.vehicle_model || 'No especificado';
-                
-                // Cargar Datos de Pago
-                document.getElementById('modal-pay-cedula').innerText = u.pay_cedula || '---';
-                document.getElementById('modal-pay-phone').innerText = u.pay_phone || '---';
-                document.getElementById('modal-pay-bank').innerText = u.pay_bank || '---';
-
-                // Cargar Historial del conductor
-                loadDriverHistory(u.id);
-
             } else {
-                tabsDiv.classList.add('hidden');
-                vehicleInfo.classList.add('hidden');
-                paymentInfo.classList.add('hidden');
-                bioInfo.style.display = 'block';
-                document.getElementById('modal-bio').innerText = u.bio || "Sin biografía disponible.";
+                driverInfo.classList.add('hidden');
             }
             
             updateModalActions(u);
             document.getElementById('detail-modal').classList.add('active');
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            // Encontrar el botón clickeado
-            const buttons = document.querySelectorAll('.tab-btn');
-            if(tabName === 'profile') buttons[0].classList.add('active');
-            else buttons[1].classList.add('active');
-
-            document.getElementById(`tab-${tabName}`).classList.add('active');
-        }
-
-        async function loadDriverHistory(driverId) {
-            const list = document.getElementById('driver-history-list');
-            list.innerHTML = '<div style="padding:10px; text-align:center; color:#666;">Cargando viajes...</div>';
-            try {
-                // Usamos el endpoint de historia general, filtrando por el conductor como 'driver_name'
-                // Nota: Esto funciona si guardamos el nombre exacto. En un sistema real usaríamos driver_id en la tabla historial.
-                const histRes = await fetch(`/api/history?user_id=${appState.user.id}`); 
-                // Truco: Filtramos en frontend los viajes donde el nombre coincide, ya que la API general trae los del usuario logueado
-                // Pero para ver el historial DEL OTRO, necesitamos una API nueva o buscar en el historial general.
-                // Por simplicidad en este código actual, solo mostraremos el historial que el USUARIO actual tuvo CON este conductor.
-                
-                const history = await histRes.json();
-                list.innerHTML = '';
-                
-                // Filtramos historial para mostrar solo viajes de ESTE conductor
-                const driverHistory = history.filter(h => h.driver_name === appState.currentSelection.name);
-
-                if (driverHistory.length === 0) {
-                    list.innerHTML = '<div style="padding:10px; text-align:center; color:#666;">Este conductor aún no tiene viajes contigo.</div>';
-                } else {
-                    driverHistory.forEach(h => {
-                        const item = document.createElement('div');
-                        item.className = 'history-item';
-                        let starsHtml = '';
-                        if(h.rating > 0) {
-                            for(let i=0; i<5; i++) starsHtml += i < h.rating ? '★' : '☆';
-                        } else {
-                            starsHtml = 'Sin calificación';
-                        }
-
-                        let statusClass = h.status === 'completed' ? 'st-completed' : 'st-cancelled';
-                        
-                        item.innerHTML = `
-                            <div class="history-header">
-                                <b>Fecha: ${new Date(h.created_at).toLocaleDateString()}</b>
-                                <span class="history-status ${statusClass}">${h.status}</span>
-                            </div>
-                            <div class="history-stars">Calificación: ${starsHtml}</div>
-                        `;
-                        list.appendChild(item);
-                    });
-                }
-            } catch(e) {
-                console.error(e);
-                list.innerHTML = '<div style="padding:10px; text-align:center; color:var(--danger);">Error al cargar historial</div>';
-            }
         }
 
         function updateModalActions(u) {
@@ -1078,7 +953,7 @@
 
         function skipRating() { document.getElementById('ride-control-panel').classList.add('hidden'); }
 
-        // PERFIL PROPIO
+        // PERFIL PROPIO CON HISTORIAL VISUAL DE ESTRELLAS
         async function openMyProfile() {
             if(!appState.user) return;
             initAvatarSelector(); 
@@ -1102,7 +977,7 @@
                 document.getElementById('driver-payment-fields').classList.add('hidden');
             }
 
-            const list = document.getElementById('my-history-list');
+            const list = document.getElementById('history-list');
             list.innerHTML = '<div style="padding:10px; text-align:center; color:#666;">Cargando...</div>';
             try {
                 const histRes = await fetch(`/api/history?user_id=${appState.user.id}`);
@@ -1115,6 +990,8 @@
                     history.forEach(h => {
                         const item = document.createElement('div');
                         item.className = 'history-item';
+                        
+                        // Generar estrellas visuales
                         let starsHtml = '';
                         if(h.rating > 0) {
                             for(let i=0; i<5; i++) {
@@ -1123,7 +1000,9 @@
                         } else {
                             starsHtml = 'Sin calificación';
                         }
+
                         let statusClass = h.status === 'completed' ? 'st-completed' : 'st-cancelled';
+                        
                         item.innerHTML = `
                             <div class="history-header">
                                 <b>${h.driver_name}</b>
