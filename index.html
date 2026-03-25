@@ -72,7 +72,7 @@
             width: 100%; padding: 16px; 
             background: #1a1a1a; border: 1px solid #333; 
             color: white; border-radius: 12px; outline: none; 
-            font-size: 1rem; transition: border-color 0.3s;
+            font-size:1rem; transition: border-color 0.3s;
         }
         .input-group input:focus { border-color: var(--primary); background: #222; }
 
@@ -90,7 +90,7 @@
         .badge.visible { transform: scale(1); }
 
         /* DRAWER */
-        #users-drawer { position: fixed; top: 75px; right: 10px; z-index: 1500; width: 280px; max-height: 70vh; overflow-y: auto; background: #1a1a1a; border-radius: 15px; padding: 10px; border: 1px solid #333; transform: translateX(120%); transition: transform 0.3s; box-shadow: -5px 5px 20px rgba(0,0,0,0.5); }
+        #users-drawer { position: fixed; top: 75px; right: 10px; z-index: 1500; width: 280px; max-height: 70vh; overflow-y: auto; background: #1a1a1a; border-radius: 15px; padding: 10px; border: 1px solid #333; transform: translateX(120%); transition: transform: 0.3s; box-shadow: -5px 5px 20px rgba(0,0,0,0.5); }
         #users-drawer.active { transform: translateX(0); }
         .user-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #333; cursor: pointer; }
         .user-item:hover { background: rgba(255,255,255,0.05); }
@@ -106,7 +106,7 @@
         /* MODALES */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; display: none; justify-content: center; align-items: flex-end; }
         .modal-overlay.active { display: flex; }
-        .modal-card { background: var(--surface); width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; padding: 0; max-height: 90vh; display: flex; flex-direction: column; border-top: 1px solid var(--primary); animation: slideUp 0.3s; overflow-y: auto; }
+        .modal-card { background: var(--surface); width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; max-height: 90vh; display: flex; flex-direction: column; border-top: 1px solid var(--primary); animation: slideUp 0.3s; overflow-y: auto; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
         /* FICHA PERFIL */
@@ -135,7 +135,7 @@
         /* CHAT & RIDE */
         .chat-header { padding: 15px; background: var(--surface-light); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .chat-body { flex: 1; overflow-y: auto; padding: 15px; background: #181818; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 75%; padding: 10px 15px; border-radius: 15px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
+        .msg { max-width: 75%; padding: 10px 15px; border-radius: 15px; font-size: 0.95rem; line-height:1.4; word-wrap: break-word; }
         .msg-own { align-self: flex-end; background: var(--primary); color: black; border-bottom-right-radius: 2px; }
         .msg-other { align-self: flex-start; background: #333; color: white; border-bottom-left-radius: 2px; }
         
@@ -162,7 +162,7 @@
 
         /* ESTILOS HISTORIAL */
         .history-list { max-height: 300px; overflow-y: auto; }
-        .history-item { padding: 12px; border-bottom: 1px solid #333; font-size: 0.9rem; display: flex; flex-direction: column; gap: 5px; }
+        .history-item { padding: 12px; border-bottom:1px solid #333; font-size: 0.9rem; display: flex; flex-direction: column; gap: 5px; }
         .history-header { display: flex; justify-content: space-between; align-items: center; }
         .history-status { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
         .st-completed { background: rgba(0,255,127,0.2); color: var(--primary); }
@@ -207,20 +207,20 @@
             color: var(--primary); display: flex; justify-content: center; align-items: center;
             font-size: 1.2rem; z-index: 4400; cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transform: scale(0); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: scale(0); transition: transform: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         #notification-fab.visible { transform: scale(1); }
         #notification-fab.pulse { animation: pulse-animation 2s infinite; }
 
         /* AVATARES Y PAGO (Perfil propio) */
-        .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 10px; }
+        .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr; gap: 10px; margin-top: 10px; }
         .avatar-option { 
             width: 100%; aspect-ratio: 1; 
             border-radius: 50%; cursor: pointer; 
             border: 2px solid transparent; 
             display: flex; justify-content: center; align-items: center; 
             font-size: 1.5rem; background: #333;
-            transition: transform 0.2s, border-color 0.2s;
+            transition: transform: 0.2s, border-color 0.2s;
         }
         .avatar-option:hover { transform: scale(1.1); }
         .avatar-option.selected { border-color: var(--primary); transform: scale(1.1); box-shadow: 0 0 10px var(--primary); }
@@ -229,7 +229,7 @@
         .payment-info-box h5 { color: var(--service); margin-bottom: 10px; }
 
         @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes pulse-animation { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 127, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(0, 255, 127, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 127, 0); } }
+        @keyframes pulse-animation { 0% { box-shadow: 0 0 0 0 0 rgba(0, 255, 127, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(0, 255, 127, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 127, 0); } }
 
     </style>
 </head>
@@ -260,8 +260,8 @@
                 <div class="input-group"><input type="tel" id="reg-phone" readonly></div>
                 
                 <div id="service-extra-fields" class="hidden">
-                    <div class="input-group"><input type="text" id="reg-model" placeholder="Modelo de Moto (ej: Honda CBZ)"></div></div>
-                    <div class="input-group"><input type="text" id="reg-plate" placeholder="Placa (ej: ABC-123)"></div></div>
+                    <div class="input-group"><input type="text" id="reg-model" placeholder="Modelo de Moto (ej: Honda CBZ)"></div>
+                    <div class="input-group"><input type="text" id="reg-plate" placeholder="Placa (ej: ABC-123)"></div>
                 </div>
 
                 <div class="input-group hidden" id="service-options">
@@ -325,7 +325,7 @@
                 <p id="modal-role-text" style="color:var(--primary); font-weight:bold; margin-top:5px;">ROL</p>
             </div>
             
-            <!-- Pestañas -->
+            <!-- Pestañas (Solo conductores) -->
             <div id="modal-tabs" class="modal-tabs hidden">
                 <button class="tab-btn active" onclick="switchTab('profile')">Ficha & Pago</button>
                 <button class="tab-btn" onclick="switchTab('history')">Historial</button>
@@ -389,84 +389,6 @@
         </div>
     </div>
 
-    <!-- MODAL CHAT -->
-    <div class="modal-overlay" id="chat-modal">
-        <div class="modal-card" style="height: 90vh;">
-            <div class="chat-header">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <i class="fa-solid fa-comments" style="color:var(--primary);"></i>
-                    <div>
-                        <h3 id="chat-with-name">Chat</h3>
-                        <small id="chat-user-status" style="color:#aaa;"></small>
-                    </div>
-                </div>
-                <button onclick="closeModal('chat-modal')" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button>
-            </div>
-            <div id="chat-messages" class="chat-body"></div>
-            <div id="ride-control-panel" class="ride-panel hidden">
-                <div id="ride-status-text" class="ride-status">Estado: ---</div>
-                <div id="ride-actions-container"></div>
-            </div>
-            <div class="chat-input-area" style="padding:10px; background:var(--surface); display:flex; gap:10px;">
-                <input type="text" id="chat-input" placeholder="Escribe un mensaje..." style="flex:1; padding:10px; border-radius:20px; border:none; background:#333; color:white;">
-                <button onclick="sendMessage()" style="background:var(--primary); border:none; width:40px; height:40px; border-radius:50%; cursor:pointer; color:black;"><i class="fa-solid fa-paper-plane"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL PERFIL PROPIO -->
-    <div class="modal-overlay" id="profile-modal">
-        <div class="modal-card">
-            <div style="padding:15px; border-bottom:1px solid #333; display:flex; justify-content:space-between;">
-                <h3>Editar Perfil</h3>
-                <button onclick="closeModal('profile-modal')" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button>
-            </div>
-            <div style="padding:15px;">
-                <!-- Selector de Avatares -->
-                <h4 style="margin-bottom:10px; color:var(--primary);">Elige tu Avatar</h4>
-                <div class="avatar-grid" id="avatar-selector"></div>
-
-                <div class="input-group" style="margin-top:20px;">
-                    <label>Biografía</label>
-                    <textarea id="edit-bio" rows="2" placeholder="Cuéntanos sobre ti..." style="width:100%; padding:8px; background:#333; border:1px solid #444; color:white;"></textarea>
-                </div>
-
-                <!-- Campos de Pago (Solo Conductores) -->
-                <div id="driver-payment-fields" class="payment-info-box hidden">
-                    <h5><i class="fa-solid fa-wallet"></i> Datos de Pago (Pago Móvil)</h5>
-                    <div class="input-group">
-                        <label>Cédula</label>
-                        <input type="text" id="pay-cedula" placeholder="V-00000000">
-                    </div>
-                    <div class="input-group">
-                        <label>Teléfono</label>
-                        <input type="text" id="pay-phone" placeholder="0414-000-0000">
-                    </div>
-                    <div class="input-group">
-                        <label>Banco</label>
-                        <select id="pay-bank" style="width:100%; padding:12px; background:#1a1a1a; border:1px solid #444; color:white; border-radius:8px;">
-                            <option value="">Selecciona Banco</option>
-                            <option value="0105">Banco de Venezuela</option>
-                            <option value="0102">Banesco</option>
-                            <option value="0108">BBVA Provincial</option>
-                            <option value="0134">Banesco</option>
-                            <option value="0104">Venezuela</option>
-                            <option value="0172">Banfanb</option>
-                            <option value="0191">BNC</option>
-                        </select>
-                    </div>
-                </div>
-
-                <h4 style="margin:20px 0 10px 0; color:var(--primary);">Mi Historial</h4>
-                <div id="my-history-list" class="history-list" style="border:1px solid #333; border-radius:8px;">
-                    <div style="padding:10px; text-align:center; color:#666;">Cargando...</div>
-                </div>
-                
-                <button class="btn-main btn-enter" onclick="saveMyProfile()">Guardar Cambios</button>
-            </div>
-        </div>
-    </div>
-
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const appState = { user: null, map: null, userMarker: null, markers: {}, currentSelection: null, chatTarget: null, lastNotifId: 0, pendingNotification: null, usersCache: {}, currentRide: null, tempRating: 0 };
@@ -514,6 +436,7 @@
         async function checkUser() {
             const phone = document.getElementById('login-phone').value;
             if(!phone) return alert("Ingresa teléfono");
+            // Agregado async a checkUser para arreglarse y no colgar errores de sintaxis
             try {
                 const data = await (await fetch(`/api/check-user?phone=${phone}`)).json();
                 if(data.found) enterApp(data.user);
@@ -831,12 +754,10 @@
                 document.getElementById('modal-plate').innerText = u.plate || 'No registrada';
                 document.getElementById('modal-model').innerText = u.vehicle_model || 'No especificado';
                 
-                // Cargar Datos de Pago
                 document.getElementById('modal-pay-cedula').innerText = u.pay_cedula || '---';
                 document.getElementById('modal-pay-phone').innerText = u.pay_phone || '---';
                 document.getElementById('modal-pay-bank').innerText = u.pay_bank || '---';
 
-                // Cargar Historial del conductor
                 loadDriverHistory(u.id);
 
             } else {
@@ -904,10 +825,10 @@
                         
                         item.innerHTML = `
                             <div class="history-header">
-                                <b>Fecha: ${new Date(h.created_at).toLocaleDateString()}</b>
+                                <b>${h.driver_name}</b>
                                 <span class="history-status ${statusClass}">${h.status}</span>
                             </div>
-                            <div class="history-stars">Calificación: ${starsHtml}</div>
+                            <div class="history-stars">${starsHtml}</div>
                         `;
                         list.appendChild(item);
                     });
@@ -1035,28 +956,19 @@
                         }
                         else actions.innerHTML = `<div style="text-align:center; padding:10px; color:var(--primary);">🛵 El taxista va en camino...</div>`;
                     } else if(ride.status === 'active') {
-                        if(appState.user.id === ride.client_id) {
-                            // USUARIO CONFIRMA LLEGADA -> ABRE RATING MODAL
-                            actions.innerHTML = `<button class="btn-ride btn-finish" onclick="openRatingModal()">📍 He llegado a mi destino</button>`;
-                        } else {
-                            actions.innerHTML = `<div style="text-align:center; padding:10px; color:#aaa;">Esperando que el cliente confirme llegada...</div>`;
-                        }
+                        if(appState.user.id === ride.client_id) actions.innerHTML = `<button class="btn-ride btn-finish" onclick="openRatingModal()">📍 He llegado a mi destino</button>`;
+                        else actions.innerHTML = `<div style="text-align:center; padding:10px; color:#aaa;">Esperando que el cliente confirme llegada...</div>`;
                     } else if(ride.status === 'completed') {
                         panel.classList.add('hidden'); 
-                    } else if (ride.status === 'cancelled') {
-                        panel.classList.add('hidden');
+                        showRatingUI(); // Ahora el usuario califica
+                    } else if(ride.status === 'cancelled') {
+                        panel.classList.add('hidden'); 
                         if(appState.user.role === 'service') await setUserStatus('online');
                     }
                 } catch(e) { console.error(e); }
             };
             updateUI(); 
             rideCheckInterval = setInterval(updateUI, 3000);
-        }
-
-        async function setUserStatus(status) {
-            appState.user.status = status;
-            updateStatusIcon(status);
-            fetch('/api/user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(appState.user) });
         }
 
         async function updateRideStatus(newStatus, rideId) {
@@ -1088,13 +1000,13 @@
 
         async function finalizeRide(status) {
             await updateRideStatus(status);
-            await fetch('/api/save-history', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: status, rating: 0 }) });
+            await fetch('/api/save-history', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: status: status, rating: 0 }) });
             if(status === 'completed') { 
-                // No hacemos nada aquí, esperamos el modal de rating
+                // Solo actualizamos rating en el modal opcional
             } else { document.getElementById('ride-control-panel').classList.add('hidden'); }
         }
 
-        // --- NUEVO: SISTEMA DE RATING OPCIONAL ---
+        // --- SISTEMA DE RESEÑAS ---
         function openRatingModal() {
             // Resetear estrellas temporales
             appState.tempRating = 0;
@@ -1111,6 +1023,7 @@
 
         async function submitRating() {
             const comment = document.getElementById('rating-comment').value;
+            
             // 1. Enviar Rating Individual
             await fetch('/api/submit-rating', { 
                 method:'POST', 
@@ -1123,32 +1036,31 @@
                 }) 
             });
             
-            // 2. Guardar Historial con el rating elegido
-            await fetch('/api/save-history', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: 'completed', rating: appState.tempRating }) });
+            // 2. Guardar Historial y poner online
+            await fetch('/api/save-history', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: 'completed', rating: appState.tempRating }) });
             
-            // 3. Limpiar interfaz y poner online
+            // 3. Limpiar interfaz
             document.getElementById('rating-modal').classList.remove('active');
             document.getElementById('chat-modal').classList.remove('active');
             document.getElementById('ride-control-panel').classList.add('hidden');
-            
             if(appState.user.role === 'service') await setUserStatus('online');
         }
 
         function skipRating() { 
-            // Si cierra sin calificar, guardamos rating 0
-            fetch('/api/save-history', { 
-                method:'POST', 
-                headers:{'Content-Type':'application/json'}, 
-                body: JSON.stringify({ 
-                    user_id: appState.user.id, 
-                    driver_name: appState.chatTarget.name, 
-                    status: 'completed', 
-                    rating: 0 
-                }) 
-            });
-            document.getElementById('rating-modal').classList.remove('active');
-            document.getElementById('ride-control-panel').classList.add('hidden');
-            if(appState.user.role === 'service') await setUserStatus('online');
+            if(appState.user.role === 'service') {
+                // Guardar rating 0 si el usuario cierra sin calificar
+                fetch('/api/save-history', { 
+                    method:'POST', 
+                    headers:{'Content-Type':'application/json'}, 
+                    body: JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: 'completed', rating: 0 }) 
+                );
+                document.getElementById('rating-modal').classList.remove('active');
+                document.getElementById('ride-control-panel').classList.add('hidden');
+                if(appState.user.role === 'service') await setUserStatus('online');
+            } else {
+                document.getElementById('rating-modal').classList.remove('active');
+                document.getElementById('ride-control-panel').classList.add('hidden');
+            }
         }
 
         // PERFIL PROPIO
@@ -1195,6 +1107,7 @@
                             starsHtml = 'Sin calificación';
                         }
                         let statusClass = h.status === 'completed' ? 'st-completed' : 'st-cancelled';
+                        
                         item.innerHTML = `
                             <div class="history-header">
                                 <b>${h.driver_name}</b>
@@ -1206,7 +1119,6 @@
                     });
                 }
             } catch(e){ 
-                console.error(e); 
                 list.innerHTML = '<div style="padding:10px; text-align:center; color:var(--danger);">Error cargando historial</div>';
             }
             document.getElementById('profile-modal').classList.add('active');
