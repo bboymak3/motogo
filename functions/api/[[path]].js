@@ -1,4 +1,4 @@
-// functions/api/[[path]].js
+// functions/api/[[path].js
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -34,7 +34,7 @@ export async function onRequest(context) {
       const data = await request.json();
       await DB.prepare(`
         INSERT INTO users (id, name, phone, role, lat, lng, details, bio, avatar_url, status, last_seen, created_at) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
         ON CONFLICT(id) DO UPDATE SET 
           name = excluded.name, phone = excluded.phone, role = excluded.role,
           lat = excluded.lat, lng = excluded.lng, details = excluded.details,
@@ -67,7 +67,7 @@ export async function onRequest(context) {
       const otherUserId = url.pathname.split("/").pop();
       const myId = url.searchParams.get("me");
       const { results } = await DB.prepare(`SELECT * FROM messages WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?) ORDER BY created_at ASC`).bind(myId, otherUserId, otherUserId, myId).all();
-      return new Response(JSON.stringify(results), { headers: { ...corsHeaders, "ACCEPT-CONTENT-Type': "application/json" } });
+      return new Response(JSON.stringify(results), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     
     // --- UNREAD COUNT ---
@@ -84,11 +84,10 @@ export async function onRequest(context) {
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // --- SERVICIOS (CREAR Y ACTUALIZAR ESTADO) ---
+    // --- SERVICIOS ---
     if (url.pathname === "/api/request-service" && request.method === "POST") {
       const data = await request.json();
       await DB.prepare(`INSERT INTO service_requests (client_id, driver_id, client_name, status, created_at) VALUES (?, ?, ?, 'pending', datetime('now'))`).bind(data.client_id, data.driver_id, data.client_name).run();
-      // Mensaje automático
       await DB.prepare(`INSERT INTO messages (sender_id, receiver_id, message, created_at) VALUES (?, ?, '📢 SOLICITUD DE SERVICIO', datetime('now'))`).bind(data.client_id, data.driver_id).run();
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -100,14 +99,10 @@ export async function onRequest(context) {
       return new Response(JSON.stringify(ride || null), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // --- UPDATE RIDE (ACEPTAR / TERMINAR / CANCELAR / RECHAZAR) ---
     if (url.pathname === "/api/update-ride" && request.method === "POST") {
       const data = await request.json();
       await DB.prepare("UPDATE service_requests SET status = ? WHERE id = ?").bind(data.status, data.rideId).run();
-      // Si hay calificación, se guarda también
-      if (data.rating) {
-        await DB.prepare("UPDATE service_requests SET rating = ?, review_comment = ? WHERE id = ?").bind(data.rating, data.comment, data.rideId).run();
-      }
+      if (data.rating) await DB.prepare("UPDATE service_requests SET rating = ?, review_comment = ? WHERE id = ?").bind(data.rating, data.comment, data.rideId).run();
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -123,58 +118,27 @@ export async function onRequest(context) {
       return new Response(JSON.stringify(results), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // --- REVIEWS (REVIEWS & ESTADÍSTICAS DEL CONDUCTOR) ---
+    // --- REVIEWS ---
     if (url.pathname === "/api/review" && request.method === "POST") {
       const data = await request.json();
       await DB.prepare("INSERT INTO reviews (target_id, author_name, stars, comment, created_at) VALUES (?, ?, ?, ?, datetime('now'))").bind(data.targetId, data.author, data.stars, data.comment).run();
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    
     if (url.pathname.startsWith("/api/reviews/") && request.method === "GET") {
       const targetId = url.pathname.split("/").pop();
-      // 1. Obtener reseñas
       const { results } = await DB.prepare("SELECT * FROM reviews WHERE target_id = ? ORDER BY created_at DESC").bind(targetId).all();
-      
-      // 2. Obtener promedio
-      let avgRating = 0;
-      if(results.length > 0) {
-        const sum = results.reduce((acc, r) => acc + r.stars, 0);
-        avgRating = (sum / results.length).toFixed(1);
-      }
-
-      // 3. Devolvemos un objeto con ambas cosas
-      return new Response(JSON.stringify({ list: results, average: avgRating }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // --- DRIVER STATS (DASHBOARD CONDUCTOR) ---
-    if (url.pathname === "/api/driver-stats" && request.method === "GET") {
-      const driverId = url.searchParams.get("user_id");
-      
-      // 1. Carreras Totales
-      const totalRidesRes = await DB.prepare("SELECT COUNT(*) as count FROM ride_history WHERE driver_name = (SELECT name FROM users WHERE id = ?)").bind(driverId).first();
-      const totalRides = totalRides ? totalRides.count : 0;
-
-      // 2. Promedio de Calificación (Desde la tabla reviews)
-      const ratingRes = await DB.prepare("SELECT AVG(stars) as avg FROM reviews WHERE target_id = ?").bind(driverId).first();
-      const avgRating = ratingRes && ratingRes.avg ? parseFloat(ratingRes.avg).toFixed(1) : "5.0";
-
-      // 3. Ingresos Estimados ($2.0 por viaje por defecto)
-      const estimatedEarnings = totalRides * 2.0; 
-
-      return new Response(JSON.stringify({ 
-        totalRides, 
-        averageRating: avgRating, 
-        earnings: estimatedEarnings 
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify(results), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // --- CHECK NOTIFICATIONS (CORREGIDO Y PROTEGIDO) ---
-    if (url.pathname === "/api/check-notifications" && request.method === "get") {
+    if (url.pathname === "/api/check-notifications" && request.method === "GET") {
       const userId = url.searchParams.get("user_id");
+      
+      // Enviamos respuesta vacía por defecto
       let notifications = [];
 
       try {
-        // 1. Intentar buscar mensajes (Protegido con try/catch)
+        // 1. Intentar buscar mensajes (Protegido con try/catch interno)
         try {
           const msg = await DB.prepare(`
             SELECT id, message, sender_id, 'message' as type, created_at
@@ -184,9 +148,11 @@ export async function onRequest(context) {
           `).bind(userId, userId).first();
           
           if (msg) notifications.push(msg);
-        } catch (e) { console.error("Error leyendo mensajes:", e); }
+        } catch (e) {
+          console.error("Error leyendo mensajes:", e);
+        }
 
-        // 2. Intentar buscar solicitudes de servicio (Protegido con try/catch)
+        // 2. Intentar buscar solicitudes de servicio (Protegido con try/catch interno)
         try {
           const req = await DB.prepare(`
             SELECT id, client_id as sender_id, 'service_request' as type, created_at
@@ -201,6 +167,7 @@ export async function onRequest(context) {
         }
 
       } catch (err) {
+        // Error general inesperado, devolvemos vacío para no romper la app
         console.error("Error general check-notifications:", err);
       }
 
