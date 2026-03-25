@@ -44,7 +44,7 @@
         #users-drawer.active { transform: translateX(0); }
         .user-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #333; cursor: pointer; }
         .user-item:hover { background: rgba(255,255,255,0.05); }
-        .mini-avatar { width: 45px; height: 45px; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; position: relative; flex-shrink: 0; }
+        .mini-avatar { width: 45px; height: 45px; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; position: relative; flex-shrink: 0; overflow: hidden; }
         .status-dot { position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #1a1a1a; }
 
         /* MAPA */
@@ -61,7 +61,7 @@
 
         /* FICHA PERFIL MEJORADA */
         .profile-card-header { padding: 25px; text-align: center; background: #252525; border-bottom: 1px solid #333; }
-        .profile-big-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; background: #333; margin: 0 auto 15px; border: 3px solid var(--primary); display: flex; justify-content: center; align-items: center; font-size: 2.5rem; }
+        .profile-big-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; background: #333; margin: 0 auto 15px; border: 3px solid var(--primary); display: flex; justify-content: center; align-items: center; font-size: 2.5rem; overflow: hidden; }
         .driver-details { background: #1a1a1a; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.85rem; color: #ccc; border: 1px solid #333; }
         .detail-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
         .detail-val { color: white; font-weight: bold; }
@@ -84,8 +84,8 @@
         .ride-status { text-align: center; font-weight: bold; color: var(--primary); margin-bottom: 10px; text-transform: uppercase; font-size: 0.9rem; }
         .btn-ride { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-accept { background: var(--primary); color: black; }
+        .btn-reject { background: var(--danger); color: white; }
         .btn-finish { background: var(--service); color: black; }
-        .btn-cancel { background: var(--danger); color: white; }
         .btn-sec-ride { background: #555; color: white; }
 
         .final-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
@@ -100,21 +100,50 @@
         .st-completed { background: rgba(0,255,127,0.2); color: var(--primary); }
         .st-cancelled { background: rgba(255,0,85,0.2); color: var(--danger); }
 
-        /* NOTIFICACION FLOTANTE */
-        #toast-notification {
-            position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-150%);
+        /* NUEVAS NOTIFICACIONES TIPO SNACKBAR (INFERIORES Y PEQUEÑAS) */
+        #snackbar-container {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 400px; z-index: 4500;
-            background: rgba(30,30,30,0.95); backdrop-filter: blur(10px);
-            border: 1px solid var(--service); border-radius: 12px;
-            padding: 15px; display: flex; align-items: center; gap: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
+            display: flex; flex-direction: column; gap: 10px;
+            pointer-events: none; /* Dejar pasar clicks al mapa si no hay notificaciones */
         }
-        #toast-notification.active { transform: translateX(-50%) translateY(0); }
-        .toast-icon { font-size: 1.5rem; color: var(--service); }
-        .toast-content h4 { font-size: 0.95rem; margin-bottom: 2px; color: white; }
-        .toast-content p { font-size: 0.8rem; color: #ccc; }
+
+        .snackbar {
+            background: rgba(40, 40, 40, 0.95); backdrop-filter: blur(10px);
+            border-left: 4px solid var(--primary);
+            border-radius: 8px; padding: 12px 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            color: white; display: flex; align-items: center; justify-content: space-between;
+            animation: slideInUp 0.3s ease-out; pointer-events: auto;
+        }
+        
+        .snackbar.type-service { border-left-color: var(--service); }
+        .snackbar-content { flex: 1; padding-right: 10px; }
+        .snackbar-content h4 { font-size: 0.9rem; margin-bottom: 2px; color: white; }
+        .snackbar-content p { font-size: 0.8rem; color: #ccc; }
+        
+        /* BOTÓN RECHAZAR DENTRO DEL SNACKBAR */
+        .btn-snackbar-action {
+            background: transparent; border: 1px solid var(--danger); color: var(--danger);
+            padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; white-space: nowrap;
+        }
+        .btn-snackbar-action:hover { background: var(--danger); color: white; }
+
+        /* ICONO PERSISTENTE EN LA ESQUINA */
+        #notification-fab {
+            position: fixed; bottom: 20px; right: 20px;
+            width: 50px; height: 50px; border-radius: 50%;
+            background: var(--surface); border: 2px solid var(--primary);
+            color: var(--primary); display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; z-index: 4400; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transform: scale(0); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #notification-fab.visible { transform: scale(1); }
+        #notification-fab.pulse { animation: pulse-animation 2s infinite; }
+
+        @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes pulse-animation { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 127, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(0, 255, 127, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 127, 0); } }
 
     </style>
 </head>
@@ -139,7 +168,6 @@
                 <div class="input-group"><input type="text" id="reg-surname" placeholder="Apellido"></div>
                 <div class="input-group"><input type="tel" id="reg-phone" readonly></div>
                 
-                <!-- Campos extra para conductores -->
                 <div id="service-extra-fields" class="hidden">
                     <div class="input-group"><input type="text" id="reg-model" placeholder="Modelo de Moto (ej: Honda CBZ)"></div>
                     <div class="input-group"><input type="text" id="reg-plate" placeholder="Placa (ej: ABC-123)"></div>
@@ -158,13 +186,10 @@
         </div>
     </div>
 
-    <!-- NOTIFICACIÓN FLOTANTE -->
-    <div id="toast-notification" onclick="handleNotificationClick()">
-        <div class="toast-icon"><i class="fa-solid fa-bell"></i></div>
-        <div class="toast-content">
-            <h4 id="toast-title">Notificación</h4>
-            <p id="toast-msg">Tienes un nuevo mensaje...</p>
-        </div>
+    <!-- NUEVO SISTEMA DE NOTIFICACIONES -->
+    <div id="snackbar-container"></div>
+    <div id="notification-fab" onclick="handleNotificationClick()">
+        <i class="fa-solid fa-bell"></i>
     </div>
 
     <!-- HEADER -->
@@ -202,12 +227,10 @@
                 <h2 id="modal-name">Nombre</h2>
                 <p id="modal-role-text" style="color:var(--primary); font-weight:bold; margin-top:5px;">ROL</p>
                 
-                <!-- DETALLES EXTRA DEL CONDUCTOR -->
                 <div id="modal-driver-info" class="driver-details hidden">
                     <div class="detail-row"><span>Placa:</span> <span id="modal-plate" class="detail-val">---</span></div>
                     <div class="detail-row"><span>Modelo:</span> <span id="modal-model" class="detail-val">---</span></div>
                 </div>
-
                 <p id="modal-bio" style="color:#888; font-style:italic; font-size:0.9rem; margin-top:10px;">Sin biografía disponible.</p>
             </div>
             <div id="modal-actions" class="profile-actions-grid"></div>
@@ -278,13 +301,13 @@
             document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
             document.getElementById(`role-${role}`).classList.add('active');
             
-            // Mostrar campos extra si es servicio
             const extraFields = document.getElementById('service-extra-fields');
             if(role === 'service') extraFields.classList.remove('hidden');
             else extraFields.classList.add('hidden');
 
-            document.getElementById('service-options').classList.add('hidden');
-            if(role === 'service') document.getElementById('service-options').classList.remove('hidden');
+            const serviceOptions = document.getElementById('service-options');
+            if(role === 'service') serviceOptions.classList.remove('hidden');
+            else serviceOptions.classList.add('hidden');
         }
 
         async function checkUser() {
@@ -334,6 +357,18 @@
         // --- APP MAIN ---
         async function enterApp(user) {
             appState.user = user;
+            
+            const headerAvatar = document.getElementById('header-avatar');
+            const headerIcon = document.getElementById('header-fallback-icon');
+            if(user.avatar_url) {
+                headerAvatar.src = user.avatar_url;
+                headerAvatar.style.display = 'block';
+                headerIcon.style.display = 'none';
+            } else {
+                headerAvatar.style.display = 'none';
+                headerIcon.style.display = 'block';
+            }
+
             document.getElementById('display-name').innerText = user.name;
             document.getElementById('display-role').innerText = user.role.toUpperCase();
             if(user.role === 'service') {
@@ -354,12 +389,13 @@
                         appState.map.setView([latitude, longitude], 14);
                     }
                     await fetch('/api/user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(user) });
+                    
                     if(appState.userMarker) appState.map.removeLayer(appState.userMarker);
                     let iconHtml = user.role === 'service' ? '<i class="fa-solid fa-motorcycle"></i>' : '<i class="fa-solid fa-user"></i>';
                     let iconClass = user.role === 'service' ? 'custom-pin-service' : 'custom-pin-user';
                     const icon = L.divIcon({ className: '', html: `<div class="${iconClass}" style="width:35px; height:35px;">${iconHtml}</div>`, iconSize: [35,35], iconAnchor: [17.5, 17.5] });
                     appState.userMarker = L.marker([latitude, longitude], {icon: icon}).addTo(appState.map);
-                }, null, { enableHighAccuracy: true });
+                }, (err) => { console.warn("GPS error", err); }, { enableHighAccuracy: true });
             }
             startSyncLoop();
         }
@@ -382,13 +418,14 @@
             setInterval(checkNotifications, 5000);
         }
 
-        // ACTUALIZACIÓN SIN PARPADEO
         async function syncUsers() {
             try {
                 const res = await fetch('/api/users');
                 const users = await res.json();
                 const list = document.getElementById('users-list-content');
                 
+                if(!users) return;
+
                 const activeIds = users.map(u => u.id);
                 Object.keys(appState.markers).forEach(id => {
                     if(!activeIds.includes(id) || id === appState.user.id) {
@@ -429,7 +466,6 @@
                     list.innerHTML = listHtml;
                 }
 
-                // Actualizar modal si está abierto
                 if(appState.currentSelection && appState.usersCache[appState.currentSelection.id]) {
                     const updatedUser = appState.usersCache[appState.currentSelection.id];
                     if(document.getElementById('detail-modal').classList.contains('active')) {
@@ -440,7 +476,7 @@
             } catch(e){ console.error(e); }
         }
 
-        // --- NOTIFICACIONES ---
+        // --- NUEVO SISTEMA DE NOTIFICACIONES ---
         async function checkNotifications() {
             try {
                 const res = await fetch(`/api/check-notifications?user_id=${appState.user.id}`);
@@ -448,48 +484,80 @@
                 
                 if (data && data.length > 0) {
                     const notif = data[0];
-                    if (notif.id > appState.lastNotifId) {
-                        appState.lastNotifId = notif.id;
+                    const notifId = notif.id || notif.created_at; 
+                    
+                    if (notifId != appState.lastNotifId) {
+                        appState.lastNotifId = notifId;
                         appState.pendingNotification = notif;
                         
-                        showToast(notif);
+                        showSnackbar(notif);
                         
-                        const badge = document.getElementById('notif-badge');
-                        badge.classList.add('visible');
-                        badge.innerText = "1";
+                        // Mostrar FAB (icono flotante)
+                        const fab = document.getElementById('notification-fab');
+                        fab.classList.add('visible', 'pulse');
                     }
                 }
             } catch(e) { console.error(e); }
         }
 
-        function showToast(notif) {
-            const toast = document.getElementById('toast-notification');
-            const title = document.getElementById('toast-title');
-            const msg = document.getElementById('toast-msg');
-            const icon = document.querySelector('.toast-icon i');
+        function showSnackbar(notif) {
+            const container = document.getElementById('snackbar-container');
+            const div = document.createElement('div');
+            
+            // Determinar tipo y estilos
+            const isService = notif.type === 'service_request';
+            const typeClass = isService ? 'type-service' : '';
+            const title = isService ? "Solicitud de Servicio" : "Nuevo Mensaje";
+            const msg = isService ? `${notif.sender_name} te solicita carrera.` : `${notif.sender_name}: ${notif.message || '...'}`;
+            const actionBtn = isService ? `<button class="btn-snackbar-action" onclick="rejectService(event)">Rechazar</button>` : '';
 
-            if (notif.type === 'service_request') {
-                title.innerText = "¡Nueva Solicitud de Servicio!";
-                msg.innerText = `${notif.sender_name || 'Cliente'} te está solicitando una carrera.`;
-                icon.className = "fa-solid fa-taxi";
-                toast.style.borderColor = "var(--service)";
-                document.querySelector('.toast-icon').style.color = "var(--service)";
-            } else {
-                title.innerText = "Nuevo Mensaje";
-                msg.innerText = "Tienes un nuevo mensaje.";
-                icon.className = "fa-solid fa-comment";
-                toast.style.borderColor = "var(--primary)";
-                document.querySelector('.toast-icon').style.color = "var(--primary)";
+            div.className = `snackbar ${typeClass}`;
+            div.innerHTML = `
+                <div class="snackbar-content" onclick="handleNotificationClick()">
+                    <h4>${title}</h4>
+                    <p>${msg}</p>
+                </div>
+                ${actionBtn}
+            `;
+            
+            container.appendChild(div);
+
+            // Auto cerrar en 3 segundos
+            setTimeout(() => {
+                div.style.opacity = '0';
+                div.style.transform = 'translateY(20px)';
+                setTimeout(() => { if(div.parentNode) div.parentNode.removeChild(div); }, 300);
+            }, 3000);
+        }
+
+        // Función para rechazar directamente desde la notificación
+        async function rejectService(e) {
+            e.stopPropagation(); // Evitar abrir el chat
+            if (appState.pendingNotification && appState.pendingNotification.type === 'service_request') {
+                // Buscar el ride ID asociado a esta notificación
+                // Como no tenemos el ID directo en la notificación simple, lo buscamos por estado
+                try {
+                    const res = await fetch(`/api/get-ride-status?my_id=${appState.user.id}&other_id=${appState.pendingNotification.sender_id}`);
+                    const ride = await res.json();
+                    if (ride) {
+                        await updateRideStatus('cancelled', ride.id);
+                        alert("Solicitud rechazada");
+                    }
+                } catch (err) {
+                    console.error("Error rechazando", err);
+                }
             }
-            toast.classList.add('active');
-            setTimeout(() => { toast.classList.remove('active'); }, 6000);
         }
 
         async function handleNotificationClick() {
-            const toast = document.getElementById('toast-notification');
-            toast.classList.remove('active');
+            // Ocultar el FAB parpadeante
+            const fab = document.getElementById('notification-fab');
+            fab.classList.remove('pulse');
+            
             if (!appState.pendingNotification) return;
             const notif = appState.pendingNotification;
+            
+            // Si es servicio y el usuario es conductor, abrir el chat con el panel de carreras visible
             try {
                 const userRes = await fetch(`/api/get-user-by-id?id=${notif.sender_id}`);
                 const userData = await userRes.json();
@@ -528,7 +596,6 @@
             const avatarContainer = document.getElementById('modal-avatar');
             avatarContainer.innerHTML = u.avatar_url ? `<img src="${u.avatar_url}" style="width:100%; height:100%; border-radius:50%;">` : '<i class="fa-solid fa-user"></i>';
             
-            // Mostrar detalles extra si es servicio
             const driverInfo = document.getElementById('modal-driver-info');
             if(u.role === 'service') {
                 driverInfo.classList.remove('hidden');
@@ -560,191 +627,3 @@
         }
 
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-        // --- CARRERA ---
-        async function startServiceFlow() {
-            const driver = appState.currentSelection;
-            closeModal('detail-modal');
-            await fetch('/api/request-service', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ client_id: appState.user.id, driver_id: driver.id, client_name: appState.user.name }) });
-            appState.chatTarget = driver;
-            setupChatUI(driver.name, driver.status);
-            document.getElementById('chat-modal').classList.add('active');
-            loadMessages(driver.id);
-            checkRideStatus(); 
-        }
-
-        function openChatFromModal() {
-            const target = appState.currentSelection;
-            closeModal('detail-modal');
-            openChat(target);
-        }
-
-        async function openChat(target) {
-            appState.chatTarget = target;
-            setupChatUI(target.name, target.status);
-            document.getElementById('chat-modal').classList.add('active');
-            loadMessages(target.id);
-            checkRideStatus();
-        }
-
-        function setupChatUI(name, status) {
-            document.getElementById('chat-with-name').innerText = name;
-            document.getElementById('chat-user-status').innerText = status === 'online' ? '🟢 En línea' : '⚫ Desconectado';
-        }
-
-        async function loadMessages(targetId) {
-            const msgs = await (await fetch(`/api/messages/${targetId}?me=${appState.user.id}`)).json();
-            const container = document.getElementById('chat-messages');
-            container.innerHTML = '';
-            msgs.forEach(m => {
-                const isMe = m.sender_id === appState.user.id;
-                const div = document.createElement('div');
-                div.className = `msg ${isMe ? 'msg-own' : 'msg-other'}`;
-                div.innerText = m.message;
-                container.appendChild(div);
-            });
-            container.scrollTop = container.scrollHeight;
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const txt = input.value.trim();
-            if(!txt || !appState.chatTarget) return;
-            await fetch('/api/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sender_id: appState.user.id, receiver_id: appState.chatTarget.id, message: txt }) });
-            input.value = '';
-            loadMessages(appState.chatTarget.id);
-        }
-
-        let rideCheckInterval;
-        async function checkRideStatus() {
-            if(rideCheckInterval) clearInterval(rideCheckInterval);
-            const updateUI = async () => {
-                if(!appState.chatTarget) return;
-                try {
-                    const res = await fetch(`/api/get-ride-status?my_id=${appState.user.id}&other_id=${appState.chatTarget.id}`);
-                    const ride = await res.json();
-                    const panel = document.getElementById('ride-control-panel');
-                    const actions = document.getElementById('ride-actions-container');
-                    const statusText = document.getElementById('ride-status-text');
-                    if(!ride) { panel.classList.add('hidden'); return; }
-                    panel.classList.remove('hidden');
-                    appState.currentRide = ride;
-                    statusText.innerText = "Estado: " + ride.status.toUpperCase();
-                    actions.innerHTML = '';
-                    if(ride.status === 'pending') {
-                        if(appState.user.id === ride.driver_id) actions.innerHTML = `<button class="btn-ride btn-accept" onclick="updateRideStatus('accepted')">✅ Aceptar Carrera</button>`;
-                        else actions.innerHTML = `<div style="text-align:center; padding:10px; color:#aaa;">Esperando aceptación...</div>`;
-                    } else if(ride.status === 'accepted') {
-                        if(appState.user.id === ride.driver_id) actions.innerHTML = `<button class="btn-ride btn-finish" onclick="updateRideStatus('active')">🏁 Terminar (Llegué)</button>`;
-                        else actions.innerHTML = `<div style="text-align:center; padding:10px; color:var(--primary);">🛵 En camino...</div>`;
-                    } else if(ride.status === 'active') {
-                        if(appState.user.id === ride.client_id) actions.innerHTML = `<button class="btn-ride btn-finish" onclick="showArrivalOptions()">📍 He llegado a mi destino</button>`;
-                        else actions.innerHTML = `<div style="text-align:center; padding:10px; color:#aaa;">Esperando confirmación...</div>`;
-                    } else if(ride.status === 'completed') {
-                        panel.classList.add('hidden'); showRatingUI();
-                    }
-                } catch(e) {}
-            };
-            updateUI(); rideCheckInterval = setInterval(updateUI, 3000);
-        }
-
-        async function updateRideStatus(newStatus) {
-            if(!appState.currentRide) return;
-            await fetch('/api/update-ride', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ rideId: appState.currentRide.id, status: newStatus }) });
-            checkRideStatus();
-        }
-
-        function showArrivalOptions() {
-            const actions = document.getElementById('ride-actions-container');
-            actions.innerHTML = `<p style="text-align:center; margin-bottom:10px;">¿Llegaste a tu destino?</p><div class="final-actions"><button class="btn-ride btn-accept" onclick="finalizeRide('completed')">SÍ</button><button class="btn-ride btn-sec-ride" onclick="showCancelOptions()">NO</button></div>`;
-        }
-        function showCancelOptions() {
-            const actions = document.getElementById('ride-actions-container');
-            actions.innerHTML = `<p style="text-align:center; margin-bottom:10px;">¿Qué sucedió?</p><div class="final-actions"><button class="btn-ride btn-cancel" onclick="finalizeRide('cancelled')">Cancelado</button><button class="btn-ride btn-sec-ride" onclick="finalizeRide('other')">Otra Cosa</button></div>`;
-        }
-
-        async function finalizeRide(status) {
-            await updateRideStatus(status);
-            await fetch('/api/save-history', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: status, rating: 0 }) });
-            if(status === 'completed') { /* UI espera */ } else { document.getElementById('ride-control-panel').classList.add('hidden'); }
-        }
-
-        // --- SISTEMA DE RESEÑAS (OPCIONAL) ---
-        function showRatingUI() {
-            const panel = document.getElementById('ride-control-panel');
-            panel.classList.remove('hidden');
-            document.getElementById('ride-status-text').innerText = "CALIFICA TU SERVICIO";
-            const actions = document.getElementById('ride-actions-container');
-            actions.innerHTML = `
-                <div class="rating-ui">
-                    <p style="color:#aaa; margin-bottom:10px; font-size:0.9rem;">(Opcional)</p>
-                    <div class="stars" id="star-container">
-                        <span onclick="setRating(1)">★</span><span onclick="setRating(2)">★</span><span onclick="setRating(3)">★</span><span onclick="setRating(4)">★</span><span onclick="setRating(5)">★</span>
-                    </div>
-                    <textarea id="rating-comment" placeholder="Comentario..." style="width:100%; margin-top:10px; padding:8px; background:#333; border:1px solid #444; color:white; border-radius:5px;"></textarea>
-                    
-                    <div style="margin-top:15px;">
-                        <button class="btn-ride btn-accept" onclick="submitRating()">Enviar Calificación</button>
-                        <button class="btn-ride btn-sec-ride" onclick="skipRating()" style="margin-top:5px; font-weight:normal;">Omitir</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        let currentRating = 0;
-        function setRating(n) {
-            currentRating = n;
-            const spans = document.querySelectorAll('#star-container span');
-            spans.forEach((s, i) => s.classList.toggle('active', i < n));
-        }
-
-        async function submitRating() {
-            const comment = document.getElementById('rating-comment').value;
-            await fetch('/api/update-ride', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ rideId: appState.currentRide.id, status: 'completed', rating: currentRating, comment: comment }) });
-            await fetch('/api/save-history', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: 'completed', rating: currentRating }) });
-            document.getElementById('ride-control-panel').classList.add('hidden');
-            alert("¡Gracias!");
-        }
-
-        function skipRating() { 
-            // Omitir cierra el panel sin guardar rating
-            document.getElementById('ride-control-panel').classList.add('hidden'); 
-        }
-
-        // PERFIL PROPIO
-        async function openMyProfile() {
-            if(!appState.user) return;
-            document.getElementById('edit-bio').value = appState.user.bio || "";
-            document.getElementById('edit-avatar-input').value = appState.user.avatar_url || "";
-            document.getElementById('edit-avatar-preview').src = appState.user.avatar_url || "";
-            const list = document.getElementById('history-list');
-            list.innerHTML = '<div style="text-align:center; padding:10px;">Cargando...</div>';
-            try {
-                const histRes = await fetch(`/api/history?user_id=${appState.user.id}`);
-                const history = await histRes.json();
-                list.innerHTML = '';
-                if(history.length === 0) list.innerHTML = '<div style="text-align:center; padding:10px; color:#666;">Sin historial</div>';
-                history.forEach(h => {
-                    const item = document.createElement('div');
-                    item.className = 'history-item';
-                    let statusClass = h.status === 'completed' ? 'st-completed' : 'st-cancelled';
-                    item.innerHTML = `<div><b>${h.driver_name}</b></div><span class="history-status ${statusClass}">${h.status}</span>`;
-                    list.appendChild(item);
-                });
-            } catch(e){ list.innerHTML = 'Error'; }
-            document.getElementById('profile-modal').classList.add('active');
-        }
-
-        async function saveMyProfile() {
-            const newBio = document.getElementById('edit-bio').value;
-            const newAvatar = document.getElementById('edit-avatar-input').value;
-            appState.user.bio = newBio; appState.user.avatar_url = newAvatar;
-            if(newAvatar) { document.getElementById('header-avatar').src = newAvatar; document.getElementById('header-avatar').style.display = 'block'; }
-            await fetch('/api/update-profile', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: appState.user.id, bio: newBio, avatar_url: newAvatar }) });
-            closeModal('profile-modal');
-        }
-
-        document.getElementById('chat-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
-    </script>
-</body>
-</html>
