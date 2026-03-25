@@ -25,7 +25,7 @@
         .role-card.active { border-color: var(--primary); background: rgba(0, 255, 127, 0.1); color: var(--primary); }
         .role-card i { font-size: 2rem; margin-bottom: 5px; }
         .input-group { margin-bottom: 15px; text-align: left; }
-        .input-group label { display: block; margin-bottom: 5px; color: var(--text-sec); font-size:0.8rem; }
+        .input-group label { display: block; margin-bottom: 5px; color: var(--text-sec); font-size: 0.8rem; }
         .input-group input, .input-group select { width: 100%; padding: 12px; background: #333; border: 1px solid #444; color: white; border-radius: 8px; outline: none; }
         .btn-main { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-enter { background: var(--primary); color: black; }
@@ -249,7 +249,7 @@
                 <h3>Mi Perfil</h3>
                 <button onclick="closeModal('profile-modal')" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button>
             </div>
-            <div style="padding:15px; overflow-y:auto;">
+            <div style="padding:15px;">
                 <div style="text-align:center; margin-bottom:20px;">
                     <img id="edit-avatar-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background:#333; margin-bottom:10px;">
                     <input type="text" id="edit-avatar-input" placeholder="URL Foto..." style="width:100%; padding:8px; background:#333; border:1px solid #444; color:white; border-radius:5px;">
@@ -269,7 +269,7 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const appState = { user: null, map: null, userMarker: null, markers: {}, currentSelection: null, chatTarget: null, lastNotifId:0, pendingNotification: null, usersCache: {} };
+        const appState = { user: null, map: null, userMarker: null, markers: {}, currentSelection: null, chatTarget: null, lastNotifId: 0, pendingNotification: null, usersCache: {} };
         
         // --- AUTH ---
         let selectedRole = 'user';
@@ -357,7 +357,7 @@
                     if(appState.userMarker) appState.map.removeLayer(appState.userMarker);
                     let iconHtml = user.role === 'service' ? '<i class="fa-solid fa-motorcycle"></i>' : '<i class="fa-solid fa-user"></i>';
                     let iconClass = user.role === 'service' ? 'custom-pin-service' : 'custom-pin-user';
-                    const icon = L.divIcon({ className: '', html: `<div class="${iconClass}" style="width:35px; height:35px;">${iconHtml}</div>`, iconSize: [35,35], iconAnchor: [17.5, 472] }); // Ajuste iconAnchor
+                    const icon = L.divIcon({ className: '', html: `<div class="${iconClass}" style="width:35px; height:35px;">${iconHtml}</div>`, iconSize: [35,35], iconAnchor: [17.5, 17.5] });
                     appState.userMarker = L.marker([latitude, longitude], {icon: icon}).addTo(appState.map);
                 }, null, { enableHighAccuracy: true });
             }
@@ -493,7 +493,7 @@
             try {
                 const userRes = await fetch(`/api/get-user-by-id?id=${notif.sender_id}`);
                 const userData = await userRes.json();
-                if (rows.length > 0) {
+                if (userData) {
                     appState.currentSelection = userData;
                     appState.chatTarget = userData;
                     openChat(userData);
@@ -565,7 +565,7 @@
         async function startServiceFlow() {
             const driver = appState.currentSelection;
             closeModal('detail-modal');
-            await fetch('/api/request-service', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ client_id: appState.user.id, driver_id: driver.id, client_name: appState.user.name }) });
+            await fetch('/api/request-service', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ client_id: appState.user.id, driver_id: driver.id, client_name: appState.user.name }) });
             appState.chatTarget = driver;
             setupChatUI(driver.name, driver.status);
             document.getElementById('chat-modal').classList.add('active');
@@ -615,7 +615,6 @@
             loadMessages(appState.chatTarget.id);
         }
 
-        // --- ESTADOS DE CARRERA CON RECHAZO ---
         let rideCheckInterval;
         async function checkRideStatus() {
             if(rideCheckInterval) clearInterval(rideCheckInterval);
@@ -628,24 +627,13 @@
                     const actions = document.getElementById('ride-actions-container');
                     const statusText = document.getElementById('ride-status-text');
                     if(!ride) { panel.classList.add('hidden'); return; }
-                    
                     panel.classList.remove('hidden');
                     appState.currentRide = ride;
                     statusText.innerText = "Estado: " + ride.status.toUpperCase();
                     actions.innerHTML = '';
-                    
                     if(ride.status === 'pending') {
-                        // SOLO EL CONDUCTOR VE BOTONES
-                        if(appState.user.id === ride.driver_id) {
-                            actions.innerHTML = `
-                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                                    <button class="btn-ride btn-accept" onclick="updateRideStatus('accepted')">✅ Aceptar</button>
-                                    <button class="btn-ride btn-cancel" onclick="rejectRide()">❌ Rechazar</button>
-                                </div>
-                            `;
-                        } else {
-                            actions.innerHTML = `<div style="text-align:center; padding:10px; color:#aaa;">Esperando respuesta del conductor...</div>`;
-                        }
+                        if(appState.user.id === ride.driver_id) actions.innerHTML = `<button class="btn-ride btn-accept" onclick="updateRideStatus('accepted')">✅ Aceptar Carrera</button>`;
+                        else actions.innerHTML = `<div style="text-align:center; padding:10px; color:#aaa;">Esperando aceptación...</div>`;
                     } else if(ride.status === 'accepted') {
                         if(appState.user.id === ride.driver_id) actions.innerHTML = `<button class="btn-ride btn-finish" onclick="updateRideStatus('active')">🏁 Terminar (Llegué)</button>`;
                         else actions.innerHTML = `<div style="text-align:center; padding:10px; color:var(--primary);">🛵 En camino...</div>`;
@@ -666,29 +654,6 @@
             checkRideStatus();
         }
 
-        // --- ACCIÓN RECHAZAR CARRERA ---
-        async function rejectRide() {
-            if(!appState.currentRide) return;
-            
-            // 1. Cancelar en BD
-            await fetch('/api/update-ride', {
-                method:'POST', 
-                headers:{'Content-Type':'application/json'}, 
-                body: JSON.stringify({ rideId: appState.currentRide.id, status: 'cancelled' }) 
-            });
-
-            // 2. Mensaje automático al usuario
-            const msg = "Lo siento, en este momento no puedo aceptar tu servicio.";
-            await fetch('/api/messages', {
-                method:'POST', 
-                headers:{'Content-Type':'application/json'}, 
-                body: JSON.stringify({ sender_id: appState.user.id, receiver_id: appState.chatTarget.id, message: msg }) 
-            });
-
-            // 3. Ocultar panel
-            document.getElementById('ride-control-panel').classList.add('hidden');
-        }
-
         function showArrivalOptions() {
             const actions = document.getElementById('ride-actions-container');
             actions.innerHTML = `<p style="text-align:center; margin-bottom:10px;">¿Llegaste a tu destino?</p><div class="final-actions"><button class="btn-ride btn-accept" onclick="finalizeRide('completed')">SÍ</button><button class="btn-ride btn-sec-ride" onclick="showCancelOptions()">NO</button></div>`;
@@ -701,8 +666,7 @@
         async function finalizeRide(status) {
             await updateRideStatus(status);
             await fetch('/api/save-history', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: status, rating: 0 }) });
-            if(status === 'completed') { /* UI espera rating */ } 
-            else { document.getElementById('ride-control-panel').classList.add('hidden'); }
+            if(status === 'completed') { /* UI espera */ } else { document.getElementById('ride-control-panel').classList.add('hidden'); }
         }
 
         // --- SISTEMA DE RESEÑAS (OPCIONAL) ---
@@ -754,7 +718,7 @@
             document.getElementById('edit-avatar-input').value = appState.user.avatar_url || "";
             document.getElementById('edit-avatar-preview').src = appState.user.avatar_url || "";
             const list = document.getElementById('history-list');
-            list.innerHTML = '<div style="text-align:center; padding:10px;">Cargando historial...</div>';
+            list.innerHTML = '<div style="text-align:center; padding:10px;">Cargando...</div>';
             try {
                 const histRes = await fetch(`/api/history?user_id=${appState.user.id}`);
                 const history = await histRes.json();
