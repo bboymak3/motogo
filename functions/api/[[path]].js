@@ -55,7 +55,6 @@ export async function onRequest(context) {
         (data.details||''), (data.bio||''), (data.avatar_url||''), (data.avatar_icon||'fa-user'), (data.status||'offline'),
         (data.vehicle_model || null), (data.plate || null),
         (data.pay_cedula || null), (data.pay_phone || null), (data.pay_bank || null),
-        // Valores para COALESCE en caso de update
         (data.pay_cedula || null), (data.pay_phone || null), (data.pay_bank || null)
       ).run();
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -67,7 +66,7 @@ export async function onRequest(context) {
       return new Response(JSON.stringify(results || []), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // --- UPDATE PROFILE (COMPLETO) ---
+    // --- UPDATE PROFILE ---
     if (url.pathname === "/api/update-profile" && request.method === "POST") {
       const data = await request.json();
       await DB.prepare(`
@@ -83,7 +82,7 @@ export async function onRequest(context) {
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // --- MESSAGES (SEND & GET) ---
+    // --- MESSAGES ---
     if (url.pathname === "/api/messages" && request.method === "POST") {
       const data = await request.json();
       await DB.prepare("INSERT INTO messages (sender_id, receiver_id, message, created_at) VALUES (?, ?, ?, datetime('now'))").bind(data.sender_id, data.receiver_id, data.message).run();
@@ -95,7 +94,7 @@ export async function onRequest(context) {
       const { results } = await DB.prepare(`SELECT * FROM messages WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?) ORDER BY created_at ASC`).bind(myId, otherUserId, otherUserId, myId).all();
       return new Response(JSON.stringify(results || []), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    
+
     // --- UNREAD COUNT ---
     if (url.pathname === "/api/unread-count" && request.method === "GET") {
       const userId = url.searchParams.get("user_id");
@@ -132,13 +131,10 @@ export async function onRequest(context) {
         await DB.prepare("UPDATE service_requests SET rating = ?, review_comment = ? WHERE id = ?").bind(data.rating, data.comment, data.rideId).run();
       }
       if(data.status === 'cancelled') {
-         // Necesitamos el ride para guardar historial, pero no tenemos appState aqui, hacemos query extra
          const ride = await DB.prepare("SELECT * FROM service_requests WHERE id = ?").bind(data.rideId).first();
          if(ride) {
-             // Intentar obtener nombre del otro usuario para el historial
              const otherUser = await DB.prepare("SELECT name FROM users WHERE id = ?").bind(ride.driver_id).first();
              const driverName = otherUser ? otherUser.name : 'Desconocido';
-             
              await DB.prepare(`INSERT INTO ride_history (user_id, driver_name, status, rating, created_at) VALUES (?, ?, ?, ?, datetime('now'))`)
                 .bind(ride.client_id, driverName, 'cancelled', 0).run();
          }
@@ -154,8 +150,16 @@ export async function onRequest(context) {
 
     if (url.pathname === "/api/history" && request.method === "GET") {
       const userId = url.searchParams.get("user_id");
-      const { results } = await DB.prepare("SELECT * FROM ride_history WHERE user_id = ? ORDER BY created_at DESC").bind(userId).all();
-      return new Response(JSON.stringify(results || []), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      // CORRECCIÓN: Manejar si la tabla está vacía o da error
+      let history = [];
+      try {
+        const { results } = await DB.prepare("SELECT * FROM ride_history WHERE user_id = ? ORDER BY created_at DESC").bind(userId).all();
+        history = results || [];
+      } catch(e) {
+        console.error("Error fetching history", e);
+        history = [];
+      }
+      return new Response(JSON.stringify(history), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // --- REVIEWS ---

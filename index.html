@@ -24,7 +24,6 @@
             display: flex; flex-direction: column; justify-content: center; 
             padding: 20px; 
         }
-        
         .auth-logo-area { text-align: center; margin-bottom: 30px; animation: fadeIn 1s ease-out; }
         .auth-logo-icon {
             font-size: 4rem; color: var(--primary);
@@ -36,7 +35,6 @@
         }
         .auth-title { font-size: 2rem; font-weight: 800; color: white; letter-spacing: 1px; margin-bottom: 5px; }
         .auth-subtitle { font-size: 0.9rem; color: var(--text-sec); font-weight: 300; }
-
         .auth-box { 
             background: rgba(30,30,30,0.6); 
             backdrop-filter: blur(20px);
@@ -48,7 +46,6 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             animation: slideUpAuth 0.5s ease-out;
         }
-
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         @keyframes slideUpAuth { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -112,7 +109,7 @@
         .modal-card { background: var(--surface); width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; padding: 0; max-height: 90vh; display: flex; flex-direction: column; border-top: 1px solid var(--primary); animation: slideUp 0.3s; overflow-y: auto; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-        /* FICHA PERFIL MEJORADA */
+        /* FICHA PERFIL */
         .profile-card-header { padding: 25px; text-align: center; background: #252525; border-bottom: 1px solid #333; flex-shrink: 0; }
         .profile-big-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; background: #333; margin: 0 auto 15px; border: 3px solid var(--primary); display: flex; justify-content: center; align-items: center; font-size: 2.5rem; overflow: hidden; }
         .driver-details { background: #1a1a1a; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.85rem; color: #ccc; border: 1px solid #333; }
@@ -148,19 +145,20 @@
 
         /* HISTORIAL */
         .history-list { padding: 0 20px 20px 20px; max-height: 250px; overflow-y: auto; }
-        .history-item { padding: 10px; border-bottom: 1px solid #333; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; }
+        .history-item { padding: 10px; border-bottom: 1px solid #333; font-size: 0.9rem; display: flex; flex-direction: column; gap: 5px; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; }
         .history-status { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
         .st-completed { background: rgba(0,255,127,0.2); color: var(--primary); }
         .st-cancelled { background: rgba(255,0,85,0.2); color: var(--danger); }
+        .history-stars { color: gold; font-size: 0.8rem; }
 
-        /* NOTIFICACIONES SNACKBAR */
+        /* NOTIFICACIONES */
         #snackbar-container {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 400px; z-index: 4500;
             display: flex; flex-direction: column; gap: 10px;
             pointer-events: none;
         }
-
         .snackbar {
             background: rgba(40, 40, 40, 0.95); backdrop-filter: blur(10px);
             border-left: 4px solid var(--primary);
@@ -192,7 +190,7 @@
         #notification-fab.visible { transform: scale(1); }
         #notification-fab.pulse { animation: pulse-animation 2s infinite; }
 
-        /* NUEVO: SELECCIONADOR DE AVATARES */
+        /* AVATARES Y PAGO */
         .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 10px; }
         .avatar-option { 
             width: 100%; aspect-ratio: 1; 
@@ -215,7 +213,7 @@
 </head>
 <body>
 
-    <!-- AUTH MEJORADO -->
+    <!-- AUTH -->
     <div id="auth-screen">
         <div class="auth-logo-area">
             <div class="auth-logo-icon"><i class="fa-solid fa-motorcycle"></i></div>
@@ -257,7 +255,7 @@
         </div>
     </div>
 
-    <!-- SISTEMA DE NOTIFICACIONES -->
+    <!-- NOTIFICACIONES -->
     <div id="snackbar-container"></div>
     <div id="notification-fab" onclick="handleNotificationClick()">
         <i class="fa-solid fa-bell"></i>
@@ -336,7 +334,7 @@
         </div>
     </div>
 
-    <!-- MODAL PERFIL PROPIO (EDITABLE) -->
+    <!-- MODAL PERFIL PROPIO -->
     <div class="modal-overlay" id="profile-modal">
         <div class="modal-card">
             <div style="padding:15px; border-bottom:1px solid #333; display:flex; justify-content:space-between;">
@@ -346,9 +344,7 @@
             <div style="padding:15px;">
                 <!-- Selector de Avatares -->
                 <h4 style="margin-bottom:10px; color:var(--primary);">Elige tu Avatar</h4>
-                <div class="avatar-grid" id="avatar-selector">
-                    <!-- Generado por JS -->
-                </div>
+                <div class="avatar-grid" id="avatar-selector"></div>
 
                 <div class="input-group" style="margin-top:20px;">
                     <label>Biografía</label>
@@ -373,11 +369,10 @@
                             <option value="0105">Banco de Venezuela</option>
                             <option value="0102">Banesco</option>
                             <option value="0108">BBVA Provincial</option>
-                            <option value="0134">Banesco</option> <!-- Ejemplo, ajustar códigos reales -->
+                            <option value="0134">Banesco</option>
                             <option value="0104">Venezuela</option>
                             <option value="0172">Banfanb</option>
                             <option value="0191">BNC</option>
-                            <!-- Agrega más bancos aquí -->
                         </select>
                     </div>
                 </div>
@@ -403,7 +398,7 @@
 
         // --- AUTH ---
         let selectedRole = 'user';
-        let selectedAvatar = 'fa-user'; // Avatar por defecto
+        let selectedAvatar = 'fa-user'; 
 
         function initAvatarSelector() {
             const container = document.getElementById('avatar-selector');
@@ -416,9 +411,6 @@
                     selectedAvatar = icon;
                     document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
                     div.classList.add('selected');
-                    // Actualizar vista previa
-                    document.getElementById('edit-avatar-preview').src = '';
-                    document.getElementById('edit-avatar-preview').innerHTML = `<i class="fa-solid ${icon}" style="font-size:3rem;"></i>`;
                 };
                 container.appendChild(div);
             });
@@ -471,7 +463,7 @@
                 status: details || 'offline',
                 vehicle_model: vehicleModel,
                 plate: plate,
-                avatar_icon: selectedAvatar, // Guardar el icono seleccionado
+                avatar_icon: selectedAvatar, 
                 lat: 0, 
                 lng: 0 
             };
@@ -490,7 +482,6 @@
             const headerAvatar = document.getElementById('header-avatar');
             const headerIcon = document.getElementById('header-fallback-icon');
             
-            // Renderizar avatar (URL o Icono)
             if(user.avatar_url) {
                 headerAvatar.src = user.avatar_url;
                 headerAvatar.style.display = 'block';
@@ -580,10 +571,9 @@
                     let statusColor = u.status === 'online' ? 'var(--primary)' : '#666';
                     let iconHtml = u.avatar_url ? `<img src="${u.avatar_url}" style="width:100%; height:100%; border-radius:50%;">` : `<i class="fa-solid ${u.avatar_icon || 'fa-user'}"></i>`;
                     
-                    // OJO: Si es conductor y status es 'occupied' (ocupado), cambiar indicador visual
                     let statusText = u.role === 'service' ? '🛵 MOTOTAXI' : 'USUARIO';
                     if(u.role === 'service' && u.status === 'occupied') {
-                        statusColor = 'var(--danger)'; // Rojo si está ocupado
+                        statusColor = 'var(--danger)'; 
                         statusText = '🛵 OCUPADO';
                     }
 
@@ -731,7 +721,6 @@
             document.getElementById('modal-bio').innerText = u.bio || "Sin biografía disponible.";
             const avatarContainer = document.getElementById('modal-avatar');
             
-            // Mostrar avatar (Icono o Imagen)
             if(u.avatar_url) {
                 avatarContainer.innerHTML = `<img src="${u.avatar_url}" style="width:100%; height:100%; border-radius:50%;">`;
             } else {
@@ -758,7 +747,6 @@
             if (appState.user.id === u.id) {
                 actionsDiv.innerHTML = `<button class="action-btn btn-profile" onclick="openMyProfile()"><i class="fa-solid fa-pen"></i><span>Editar</span></button><button class="action-btn btn-profile" style="border-color:var(--danger); color:var(--danger);" onclick="alert('Salir')"><i class="fa-solid fa-right-from-bracket"></i><span>Salir</span></button>`;
             } else if (appState.user.role === 'user' && u.role === 'service') {
-                // VALIDAR SI EL CONDUCTOR ESTA OCUPADO
                 if(u.status === 'occupied') {
                     actionsDiv.innerHTML = `<div style="grid-column: span 2; text-align:center; color:var(--danger); padding:10px; font-weight:bold;">Conductor Ocupado</div>${btnChat}`;
                 } else if (u.status === 'online') {
@@ -864,7 +852,6 @@
                         }
                     } else if(ride.status === 'accepted') {
                         if(appState.user.id === ride.driver_id) {
-                            // Cuando acepta, el conductor pasa a 'occupied'
                             await setUserStatus('occupied');
                             actions.innerHTML = `<button class="btn-ride btn-finish" onclick="updateRideStatus('active', '${ride.id}')">🏁 Llegué (Terminar)</button>`;
                         }
@@ -878,7 +865,6 @@
                     } else if (ride.status === 'cancelled') {
                         panel.classList.add('hidden');
                         alert("La carrera fue cancelada.");
-                        // Si era el conductor, volver a online
                         if(appState.user.role === 'service') await setUserStatus('online');
                     }
                 } catch(e) { console.error(e); }
@@ -924,7 +910,6 @@
             await updateRideStatus(status);
             await fetch('/api/save-history', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: appState.user.id, driver_name: appState.chatTarget.name, status: status, rating: 0 }) });
             if(status === 'completed') { 
-                // Si es conductor y completa, volver a online
                 if(appState.user.role === 'service') await setUserStatus('online');
             } else { document.getElementById('ride-control-panel').classList.add('hidden'); }
         }
@@ -968,12 +953,11 @@
 
         function skipRating() { document.getElementById('ride-control-panel').classList.add('hidden'); }
 
-        // PERFIL PROPIO (ACTUALIZADO CON AVATARES Y PAGO)
+        // PERFIL PROPIO CON HISTORIAL VISUAL DE ESTRELLAS
         async function openMyProfile() {
             if(!appState.user) return;
-            initAvatarSelector(); // Cargar avatares
+            initAvatarSelector(); 
             
-            // Seleccionar avatar actual si existe
             if(appState.user.avatar_icon) {
                 selectedAvatar = appState.user.avatar_icon;
                 document.querySelectorAll('.avatar-option').forEach(el => {
@@ -984,7 +968,6 @@
 
             document.getElementById('edit-bio').value = appState.user.bio || "";
             
-            // Mostrar campos de pago si es conductor
             if(appState.user.role === 'service') {
                 document.getElementById('driver-payment-fields').classList.remove('hidden');
                 document.getElementById('pay-cedula').value = appState.user.pay_cedula || "";
@@ -995,39 +978,61 @@
             }
 
             const list = document.getElementById('history-list');
-            list.innerHTML = '<div style="text-align:center; padding:10px;">Cargando...</div>';
+            list.innerHTML = '<div style="padding:10px; text-align:center; color:#666;">Cargando...</div>';
             try {
                 const histRes = await fetch(`/api/history?user_id=${appState.user.id}`);
                 const history = await histRes.json();
                 list.innerHTML = '';
-                if(history.length === 0) list.innerHTML = '<div style="text-align:center; padding:10px; color:#666;">Sin historial</div>';
-                history.forEach(h => {
-                    const item = document.createElement('div');
-                    item.className = 'history-item';
-                    let statusClass = h.status === 'completed' ? 'st-completed' : 'st-cancelled';
-                    item.innerHTML = `<div><b>${h.driver_name}</b></div><span class="history-status ${statusClass}">${h.status}</span>`;
-                    list.appendChild(item);
-                });
-            } catch(e){ list.innerHTML = 'Error'; }
+                
+                if (!history || history.length === 0) {
+                    list.innerHTML = '<div style="padding:10px; text-align:center; color:#666;">Sin historial</div>';
+                } else {
+                    history.forEach(h => {
+                        const item = document.createElement('div');
+                        item.className = 'history-item';
+                        
+                        // Generar estrellas visuales
+                        let starsHtml = '';
+                        if(h.rating > 0) {
+                            for(let i=0; i<5; i++) {
+                                starsHtml += i < h.rating ? '★' : '☆';
+                            }
+                        } else {
+                            starsHtml = 'Sin calificación';
+                        }
+
+                        let statusClass = h.status === 'completed' ? 'st-completed' : 'st-cancelled';
+                        
+                        item.innerHTML = `
+                            <div class="history-header">
+                                <b>${h.driver_name}</b>
+                                <span class="history-status ${statusClass}">${h.status}</span>
+                            </div>
+                            <div class="history-stars">${starsHtml}</div>
+                        `;
+                        list.appendChild(item);
+                    });
+                }
+            } catch(e){ 
+                console.error(e); 
+                list.innerHTML = '<div style="padding:10px; text-align:center; color:var(--danger);">Error cargando historial</div>';
+            }
             document.getElementById('profile-modal').classList.add('active');
         }
 
         async function saveMyProfile() {
             const newBio = document.getElementById('edit-bio').value;
             
-            // Datos básicos
             appState.user.bio = newBio;
             appState.user.avatar_icon = selectedAvatar;
-            appState.user.avatar_url = ""; // Limpiar URL si usa icono
+            appState.user.avatar_url = ""; 
 
-            // Datos bancarios si es conductor
             if(appState.user.role === 'service') {
                 appState.user.pay_cedula = document.getElementById('pay-cedula').value;
                 appState.user.pay_phone = document.getElementById('pay-phone').value;
                 appState.user.pay_bank = document.getElementById('pay-bank').value;
             }
 
-            // Actualizar header visualmente
             const headerAvatar = document.getElementById('header-avatar');
             const headerIcon = document.getElementById('header-fallback-icon');
             headerAvatar.style.display = 'none';
