@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DORYSAPP - Taxi Pro</title>
-    <!-- Quitamos el link al manifest si te da error, o crea el archivo manifest.json -->
+    <!-- Manifest comentado para evitar error 404 si no tienes el archivo -->
     <!-- <link rel="manifest" href="/manifest.json"> -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -101,7 +101,7 @@
         .st-completed { background: rgba(0,255,127,0.2); color: var(--primary); }
         .st-cancelled { background: rgba(255,0,85,0.2); color: var(--danger); }
 
-        /* NUEVAS NOTIFICACIONES TIPO SNACKBAR */
+        /* NOTIFICACIONES SNACKBAR (INFERIORES) */
         #snackbar-container {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 400px; z-index: 4500;
@@ -119,7 +119,7 @@
         }
         
         .snackbar.type-service { border-left-color: var(--service); }
-        .snackbar-content { flex: 1; padding-right: 10px; }
+        .snackbar-content { flex: 1; padding-right: 10px; cursor: pointer; }
         .snackbar-content h4 { font-size: 0.9rem; margin-bottom: 2px; color: white; }
         .snackbar-content p { font-size: 0.8rem; color: #ccc; }
         
@@ -129,7 +129,7 @@
         }
         .btn-snackbar-action:hover { background: var(--danger); color: white; }
 
-        /* ICONO PERSISTENTE */
+        /* ICONO FAB PERSISTENTE */
         #notification-fab {
             position: fixed; bottom: 20px; right: 20px;
             width: 50px; height: 50px; border-radius: 50%;
@@ -186,7 +186,7 @@
         </div>
     </div>
 
-    <!-- NUEVO SISTEMA DE NOTIFICACIONES -->
+    <!-- SISTEMA DE NOTIFICACIONES -->
     <div id="snackbar-container"></div>
     <div id="notification-fab" onclick="handleNotificationClick()">
         <i class="fa-solid fa-bell"></i>
@@ -687,33 +687,73 @@
                     const panel = document.getElementById('ride-control-panel');
                     const actions = document.getElementById('ride-actions-container');
                     const statusText = document.getElementById('ride-status-text');
-                    if(!ride) { panel.classList.add('hidden'); return; }
+                    
+                    if(!ride) { 
+                        panel.classList.add('hidden'); 
+                        return; 
+                    }
+                    
                     panel.classList.remove('hidden');
                     appState.currentRide = ride;
                     statusText.innerText = "Estado: " + ride.status.toUpperCase();
                     actions.innerHTML = '';
+                    
                     if(ride.status === 'pending') {
-                        if(appState.user.id === ride.driver_id) actions.innerHTML = `<button class="btn-ride btn-accept" onclick="updateRideStatus('accepted', '${ride.id}')">✅ Aceptar Carrera</button>`;
-                        else actions.innerHTML = `<div style="text-align:center; padding:10px; color:#aaa;">Esperando aceptación...</div>`;
+                        // SOLO EL CONDUCTOR VE BOTONES DE ACCION EN PENDING
+                        if(appState.user.id === ride.driver_id) {
+                            actions.innerHTML = `
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                                    <button class="btn-ride btn-accept" onclick="updateRideStatus('accepted', '${ride.id}')">✅ Aceptar</button>
+                                    <button class="btn-ride btn-reject" onclick="updateRideStatus('cancelled', '${ride.id}')">❌ Rechazar</button>
+                                </div>
+                            `;
+                        } else {
+                            actions.innerHTML = `<div style="text-align:center; padding:10px; color:#aaa;">Esperando que el taxista acepte...</div>`;
+                        }
                     } else if(ride.status === 'accepted') {
-                        if(appState.user.id === ride.driver_id) actions.innerHTML = `<button class="btn-ride btn-finish" onclick="updateRideStatus('active', '${ride.id}')">🏁 Terminar (Llegué)</button>`;
-                        else actions.innerHTML = `<div style="text-align:center; padding:10px; color:var(--primary);">🛵 En camino...</div>`;
+                        if(appState.user.id === ride.driver_id) actions.innerHTML = `<button class="btn-ride btn-finish" onclick="updateRideStatus('active', '${ride.id}')">🏁 Llegué (Terminar)</button>`;
+                        else actions.innerHTML = `<div style="text-align:center; padding:10px; color:var(--primary);">🛵 El taxista va en camino...</div>`;
                     } else if(ride.status === 'active') {
                         if(appState.user.id === ride.client_id) actions.innerHTML = `<button class="btn-ride btn-finish" onclick="showArrivalOptions()">📍 He llegado a mi destino</button>`;
-                        else actions.innerHTML = `<div style="text-align:center; padding:10px; color:#aaa;">Esperando confirmación...</div>`;
+                        else actions.innerHTML = `<div style="text-align:center; padding:10px; color:#aaa;">Esperando que el cliente confirme llegada...</div>`;
                     } else if(ride.status === 'completed') {
-                        panel.classList.add('hidden'); showRatingUI();
+                        panel.classList.add('hidden'); 
+                        showRatingUI();
+                    } else if (ride.status === 'cancelled') {
+                        panel.classList.add('hidden');
+                        alert("La carrera fue cancelada.");
                     }
-                } catch(e) {}
+                } catch(e) { console.error(e); }
             };
-            updateUI(); rideCheckInterval = setInterval(updateUI, 3000);
+            updateUI(); 
+            rideCheckInterval = setInterval(updateUI, 3000);
         }
 
         async function updateRideStatus(newStatus, rideId) {
-            // Si no se pasa rideId, usar el actual
             const idToUpdate = rideId || appState.currentRide.id;
+            if(!idToUpdate) return;
+            
             await fetch('/api/update-ride', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ rideId: idToUpdate, status: newStatus }) });
-            checkRideStatus();
+            
+            // Si se rechaza, limpiamos la UI inmediatamente
+            if(newStatus === 'cancelled') {
+                 document.getElementById('ride-control-panel').classList.add('hidden');
+                 // Enviar mensaje automático
+                 if(appState.chatTarget) {
+                     await fetch('/api/messages', { 
+                         method:'POST', 
+                         headers:{'Content-Type':'application/json'}, 
+                         body: JSON.stringify({ 
+                             sender_id: appState.user.id, 
+                             receiver_id: appState.chatTarget.id, 
+                             message: "❌ Servicio rechazado." 
+                         }) 
+                     });
+                     loadMessages(appState.chatTarget.id);
+                 }
+            } else {
+                checkRideStatus();
+            }
         }
 
         function showArrivalOptions() {
